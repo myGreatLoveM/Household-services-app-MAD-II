@@ -1,4 +1,6 @@
 import ProviderDashboardView from '@/views/provider/ProviderDashboardView.vue'
+import ProviderProfileView from '@/views/provider/ProviderProfileView.vue'
+import ProviderServicesView from '@/views/provider/ProviderServicesView.vue'
 
 export const providerRoutes = [
   {
@@ -9,7 +11,7 @@ export const providerRoutes = [
   {
     path: 'services',
     name: 'provider-services',
-    component: ProviderDashboardView,
+    component: ProviderServicesView,
   },
   {
     path: 'bookings',
@@ -24,6 +26,6 @@ export const providerRoutes = [
   {
     path: 'profile',
     name: 'provider-profile',
-    component: ProviderDashboardView,
+    component: ProviderProfileView,
   },
 ]

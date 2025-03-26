@@ -1,5 +1,12 @@
 <script setup>
+import { ref } from 'vue'
 import SideBar from '@/components/SideBar.vue'
+
+const isModalOpen = ref(false)
+
+function handleModal() {
+  isModalOpen.value = !isModalOpen.value
+}
 
 
 const provDashboardPathName = "provider-dashboard"
@@ -15,9 +22,9 @@ const provDashboardOtherPaths = [
 
 <template>
   <div class="w-full h-full min-h-screen flex overflow-y-auto">
-    <SideBar :dashboard-path="provDashboardPathName" :other-paths="provDashboardOtherPaths" />
+    <SideBar :dashboard-path="provDashboardPathName" :other-paths="provDashboardOtherPaths" :is-modal-open="isModalOpen" />
     <div class="w-full h-full min-h-screen max-h-screen py-8 overflow-y-auto">
-      <RouterView />
+      <RouterView @service-modal-open="handleModal" @service-modal-close="handleModal" />
     </div>
   </div>
 </template>

@@ -1,0 +1,12 @@
+sudo service redis-server start
+
+sudo service redis-server stop
+
+redis-cli ping
+
+6379 default port
+
+sudo systemctl start redis
+sudo systemctl stop redis
+sudo systemctl status redis
+

@@ -1,4 +1,4 @@
-from marshmallow import Schema, ValidationError, fields, validate, validates
+from marshmallow import Schema, ValidationError, fields, validate, validates, pre_load
 import regex as re
 
 from application.enums import UserGenderEnum
@@ -13,7 +13,7 @@ class UserLoginSchema(Schema):
             "required": "Username is required.",
             "min": "Username must be at least 3 characters long.",
             "max": "Username must not exceed 20 characters."
-        }
+        },
     )
     password = fields.String(
         required=True,
@@ -30,6 +30,13 @@ class UserLoginSchema(Schema):
         if not re.match("^[a-zA-Z0-9]+$", value):
             raise ValidationError("Username must not contain special characters. Only letters and numbers are allowed.")
 
+    @pre_load
+    def strip_whitespace(self, data, **kwargs):
+        # Loop through all fields in the schema
+        for field, value in data.items():
+            if isinstance(value, str):
+                data[field] = value.strip()  # Trim leading/trailing whitespaces
+        return data
 
 
 class UserRegisterSchema(Schema):
@@ -58,7 +65,7 @@ class UserRegisterSchema(Schema):
     )
     location = fields.String(
         required=True,
-        validate=validate.Length(min=5, max=20),
+        validate=validate.Length(min=5, max=40),
         error_messages={
             "required": "Location is required.",
             "min": "Location must be at least 5 characters long.",
@@ -75,6 +82,14 @@ class UserRegisterSchema(Schema):
         }
     )
 
+    @pre_load
+    def strip_whitespace(self, data, **kwargs):
+        # Loop through all fields in the schema
+        for field, value in data.items():
+            if isinstance(value, str):
+                data[field] = value.strip()  # Trim leading/trailing whitespaces
+        return data
+    
 
 class ProviderRegisterSchema(UserRegisterSchema):
     experience = fields.Integer(

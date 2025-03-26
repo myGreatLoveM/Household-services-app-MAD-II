@@ -1,64 +1,64 @@
 
-export const validateCategoryForm = (addCategoryForm, addCategoryFormErrors) => {
-  if (!addCategoryForm || !addCategoryFormErrors) {
+export const validateCategoryForm = (categoryForm, categoryFormErrors) => {
+  if (!categoryForm || !categoryFormErrors) {
     return false
   }
 
-  if (!addCategoryForm.name) {
-    addCategoryFormErrors.name = 'Name is required'
-  } else if (addCategoryForm.name.length < 3) {
-    addCategoryFormErrors.name = 'Name must be at least 3 characters long'
+  if (!categoryForm.name) {
+    categoryFormErrors.name = 'Name is required'
+  } else if (categoryForm.name.length < 3) {
+    categoryFormErrors.name = 'Name must be at least 3 characters long'
   } else {
-    addCategoryFormErrors.name = ''
+    categoryFormErrors.name = ''
   }
 
-  if (!addCategoryForm.description) {
-    addCategoryFormErrors.description = 'Description is required'
+  if (!categoryForm.description) {
+    categoryFormErrors.description = 'Description is required'
   } else {
-    addCategoryFormErrors.description = ''
+    categoryFormErrors.description = ''
   }
 
-  if (!addCategoryForm.basePrice) {
-    addCategoryFormErrors.basePrice = 'Base price is required'
-  } else if (!isNaN(addCategoryForm.basePrice) && parseInt(addCategoryForm.basePrice) < 100) {
-    addCategoryFormErrors.basePrice = 'Base Price should be above 100 INR'
+  if (!categoryForm.basePrice) {
+    categoryFormErrors.basePrice = 'Base price is required'
+  } else if (!isNaN(categoryForm.basePrice) && parseInt(categoryForm.basePrice) < 100) {
+    categoryFormErrors.basePrice = 'Base Price should be above 100 INR'
   } else {
-    addCategoryFormErrors.basePrice = ''
+    categoryFormErrors.basePrice = ''
   }
 
 
-  if (!addCategoryForm.minTime) {
-    addCategoryFormErrors.minTime = 'Min time is required'
-  } else if (!isNaN(addCategoryForm.minTime) && parseInt(addCategoryForm.minTime) < 1) {
-    addCategoryFormErrors.minTime = 'Minimu time required is 1 hr'
+  if (!categoryForm.minTime) {
+    categoryFormErrors.minTime = 'Min time is required'
+  } else if (!isNaN(categoryForm.minTime) && parseInt(categoryForm.minTime) < 1) {
+    categoryFormErrors.minTime = 'Minimu time required is 1 hr'
   } else {
-    addCategoryFormErrors.minTime = ''
+    categoryFormErrors.minTime = ''
   }
 
-  if (!addCategoryForm.serviceRate) {
-    addCategoryFormErrors.serviceRate = 'Service rate is required'
-  } else if (!isNaN(addCategoryForm.serviceRate) && parseInt(addCategoryForm.serviceRate) < 1) {
-    addCategoryFormErrors.serviceRate = 'Service rate should be above 1 %'
+  if (!categoryForm.serviceRate) {
+    categoryFormErrors.serviceRate = 'Service rate is required'
+  } else if (!isNaN(categoryForm.serviceRate) && parseInt(categoryForm.serviceRate) < 1) {
+    categoryFormErrors.serviceRate = 'Service rate should be above 1 %'
   } else {
-    addCategoryFormErrors.serviceRate = ''
+    categoryFormErrors.serviceRate = ''
   }
 
-  if (!addCategoryForm.bookingRate) {
-    addCategoryFormErrors.bookingRate = 'Booking rate is required'
-  } else if (!isNaN(addCategoryForm.bookingRate) && parseInt(addCategoryForm.bookingRate) < 1) {
-    addCategoryFormErrors.bookingRate = 'Booking rate should be above 1 %'
+  if (!categoryForm.bookingRate) {
+    categoryFormErrors.bookingRate = 'Booking rate is required'
+  } else if (!isNaN(categoryForm.bookingRate) && parseInt(categoryForm.bookingRate) < 1) {
+    categoryFormErrors.bookingRate = 'Booking rate should be above 1 %'
   } else {
-    addCategoryFormErrors.bookingRate = ''
+    categoryFormErrors.bookingRate = ''
   }
 
-  if (!addCategoryForm.transactionRate) {
-    addCategoryFormErrors.transactionRate = 'Transaction rate is required'
-  } else if (!isNaN(addCategoryForm.transactionRate) && parseInt(addCategoryForm.transactionRate) < 1) {
-    addCategoryFormErrors.transactionRate = 'Transaction rate should be above 1 %'
+  if (!categoryForm.transactionRate) {
+    categoryFormErrors.transactionRate = 'Transaction rate is required'
+  } else if (!isNaN(categoryForm.transactionRate) && parseInt(categoryForm.transactionRate) < 1) {
+    categoryFormErrors.transactionRate = 'Transaction rate should be above 1 %'
   } else {
-    addCategoryFormErrors.transactionRate = ''
+    categoryFormErrors.transactionRate = ''
   }
 
-  const isFormInvalid = Object.values(addCategoryFormErrors).some((error) => error !== '')
+  const isFormInvalid = Object.values(categoryFormErrors).some((error) => error !== '')
   return isFormInvalid
 }

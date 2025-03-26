@@ -40,14 +40,11 @@ def success_response(data={}, message='', is_restful=True, sleep=False, sleep_ti
     return jsonify(resp), status_code
 
 
-def error_response(err_message='', errors={}, is_restful=False, status_code=500):
+def error_response(err_message='', errors={}, status_code=500):
     resp = {
         "success": False,
         "err_message": err_message,
         "errors": errors 
     }
-
-    if is_restful:
-        return resp, status_code
     
-    return jsonify(resp), status_code
+    return resp, status_code

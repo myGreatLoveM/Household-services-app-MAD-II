@@ -20,7 +20,7 @@ class Config:
     SECURITY_PASSWORD_HASH = os.environ.get("SECURITY_PASSWORD_HASH")
     SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT")
     JWT_SECRET_KEY=os.environ.get("JWT_SECRET_KEY")
-    JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(minutes=int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES")))
+    JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(hours=int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRES")))
     JWT_REFRESH_TOKEN_EXPIRES = datetime.timedelta(days=int(os.environ.get("JWT_REFRESH_TOKEN_EXPIRES"))) 
     JWT_BLACKLIST_ENABLED=True
     WTF_CSRF_ENABLED = False

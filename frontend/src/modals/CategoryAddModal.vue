@@ -1,14 +1,18 @@
 <script setup>
-import { reactive, watch, ref, computed } from 'vue'
+import { reactive, watch, computed } from 'vue'
 import { useToast } from 'vue-toastification'
+import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import ModalCloseButton from '@/components/ModalCloseButton.vue';
 import InputField from '@/components/InputField.vue'
 import { validateCategoryForm } from '@/validations/categoryFormValidation.js';
+import { createNewCategoryForAdminDashboard } from '@/services/adminService.js'
+import { parseNumericFields, trimObjectStringValues } from '@/utils';
 
 const props = defineProps({
   closeCategoryModal: {type: Function}
 })
 
+const queryClient = useQueryClient()
 const toast = useToast()
 
 const addCategoryFormFields = {
@@ -23,7 +27,6 @@ const addCategoryFormFields = {
 
 const addCategoryForm = reactive({ ...addCategoryFormFields })
 const addCategoryFormErrors = reactive({ ...addCategoryFormFields })
-const isLoading = ref(false)
 
 const isSubmitButtonDisabled = computed(() => {
   return Object.values(addCategoryFormErrors).some((err) => err !== '') || Object.values(addCategoryForm).some((f) => f === '')
@@ -37,26 +40,41 @@ watch(
   { deep: true },
 )
 
-function handle() {
+
+const {isPending, isError, error, isSuccess, mutate} = useMutation({
+  mutationFn: (data) => createNewCategoryForAdminDashboard(data)
+})
+
+watch([isError, error], ([isErrorVal, errorVal]) => {
+  if (isErrorVal && errorVal) {
+    toast.error(errorVal.message || "Failed to created category");
+  }
+});
+
+watch(isSuccess, () => {
+  queryClient.invalidateQueries({
+    predicate: (query) => {
+      return Array.isArray(query.queryKey) &&
+        query.queryKey[0] === 'admin' &&
+        query.queryKey[1] === 'categories';
+    }
+  });
+  toast.success('new category created successfully')
+  emit('create-category')
+  props.closeCategoryModal()
+})
+
+function handleCreateCategory() {
   const isCategoryFormInvalid = validateCategoryForm(addCategoryForm, addCategoryFormErrors)
 
   if (isCategoryFormInvalid || isSubmitButtonDisabled.value) {
     return toast.error('Category Form is invalid!!!')
   }
 
-  isLoading.value = true
-  try {
-    console.log({...addCategoryForm});
-    toast.success('new category created successfully')
-    props.closeCategoryModal()
-  } catch (error) {
-    toast.error(error.message || 'Something went wrong while creating new category!!')
-  } finally {
-    isLoading.value = false
-  }
+  mutate(trimObjectStringValues(parseNumericFields({...addCategoryForm})))
 }
 
-
+const emit = defineEmits(['create-category'])
 </script>
 
 <template>
@@ -90,7 +108,7 @@ function handle() {
               label="Base Price"
               labelInfo="(in INR)"
               type="number"
-              placeholder="Enter base price to list a service"
+              placeholder="Enter base price "
               v-model="addCategoryForm.basePrice"
               :error="addCategoryFormErrors.basePrice"
               classForLabel="block mb-2 text-sm font-medium text-white"
@@ -163,12 +181,12 @@ function handle() {
           </div>
         </div>
         <button
-          @click="handle"
-          :disabled="isSubmitButtonDisabled"
-          :class="isSubmitButtonDisabled ? 'bg-blue-600 cursor-none' : 'bg-blue-700 hover:bg-blue-800'"
+          @click="handleCreateCategory"
+          :disabled="isSubmitButtonDisabled  || isPending"
+          :class="isSubmitButtonDisabled || isPending ? 'bg-blue-500  cursor-none' : 'bg-blue-700 hover:bg-blue-800'"
           class="text-white inline-flex items-center   font-medium rounded-lg text-sm px-5 py-2.5 text-center"
         >
-          Submit
+          {{ isPending ? 'Creating...' : 'Create' }}
         </button>
       </div>
     </div>

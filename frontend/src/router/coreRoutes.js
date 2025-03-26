@@ -1,7 +1,8 @@
 import HomeView from '@/views/HomeView.vue'
 import CategoriesExploreView from '@/views/core/CategoriesExploreView.vue'
 import CategoryExploreView from '@/views/core/CategoryExploreView.vue'
-import ServiceExploreView from '@/views/core/ServiceExploreView.vue'
+import ActiveServicesExploreView from '@/views/core/ActiveServicesExploreView.vue'
+import ActiveServiceView from '@/views/core/ActiveServiceView.vue'
 
 
 export const coreRoutes = [
@@ -27,7 +28,17 @@ export const coreRoutes = [
   },
   {
     path: 'services',
-    name: 'explore-listed-services',
-    component: ServiceExploreView,
+    children: [
+      {
+        path: '',
+        name: 'explore-listed-services',
+        component: ActiveServicesExploreView,
+      },
+      {
+        path: ':serviceId(\\d+)',
+        name: 'explore-service',
+        component: ActiveServiceView,
+      },
+    ],
   },
 ]

@@ -15,7 +15,7 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
         model = User
         load_instance = True
         include_relationships = False
-        fields = ('username', 'role', 'provider', 'customer')
+        fields = ('username', 'role', 'provider', 'customer', 'profile')
 
     role = fields.Method('get_role_from_relationship')
     provider = fields.Method('get_provider_relationship')

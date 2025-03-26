@@ -30,8 +30,9 @@ const props = defineProps({
   }
 })
 
+
 const firstItem = computed(() => {
-  return ((props.currentPage-1) * props.perPage)+1
+  return ((props.currentPage-1) * props.perPage) + 1
 })
 
 const lastItem = computed(() => {

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { useAuthNUserStore } from '@/stores/authNUserStore.js'
+import { useAuthUserStore } from '@/stores/authUserStore.js'
 import { loginUserService, refreshTokens, registerUserService } from '@/services/authService.js'
 import { useToast } from 'vue-toastification'
 
@@ -16,15 +16,15 @@ export const useAuthStore = defineStore('authStore', {
     async login(formData) {
       try {
         const data = await loginUserService(formData)
-        const authNUser = useAuthNUserStore()
+        const authUserStore = useAuthUserStore()
 
-        authNUser.setUser(data?.user)
+        authUserStore.setUser(data?.user)
 
         localStorage.setItem('auth-token', JSON.stringify(data?.access_token))
         localStorage.setItem('refresh-token', JSON.stringify(data?.refresh_token))
 
         this.authToken = data?.access_token
-        this.isAuthenticated = !!this.authToken && !!authNUser.username && !!authNUser.role
+        this.isAuthenticated = !!this.authToken && !!authUserStore.username && !!authUserStore.role
 
         if (!this.isAuthenticated) {
           throw new Error('User not authenticated properly!!')
@@ -35,7 +35,7 @@ export const useAuthStore = defineStore('authStore', {
           return this.router.push({ path: redirectUrl })
         }
 
-        authNUser.redirectUserDashboard()
+        authUserStore.redirectUserDashboard()
         return
       } catch (error) {
         throw new Error(error.message || 'Something went wrong while logging!!')
@@ -50,8 +50,8 @@ export const useAuthStore = defineStore('authStore', {
       }
     },
     logout() {
-      const authNUser = useAuthNUserStore()
-      authNUser.clearUser()
+      const authUserStore = useAuthUserStore()
+      authUserStore.clearUser()
 
       this.authToken = null
       this.isAuthenticated = false
@@ -70,10 +70,10 @@ export const useAuthStore = defineStore('authStore', {
         localStorage.setItem('refresh-token', JSON.stringify(data?.refresh_token))
 
         this.authToken = data?.access_token
-        console.log('tokens refreshed');
+        console.log('tokens refreshed')
       } catch (error) {
-        console.log(error);
+        console.log(error)
       }
-    }
+    },
   },
 })

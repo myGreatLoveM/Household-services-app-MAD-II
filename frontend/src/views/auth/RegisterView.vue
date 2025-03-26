@@ -11,6 +11,8 @@ import { validateRegisterForm } from '@/validations/authFormValidation.js'
 import { getAllCategoriesForRegisterForm } from '@/services/authService.js'
 
 import { UserRoles } from '@/constants.js'
+import { trimObjectStringValues } from '@/utils.js'
+
 
 const { register } = useAuthStore()
 const toast = useToast()
@@ -84,7 +86,7 @@ const handleRegister = async () => {
         formData = { ...formData, experience }
       }
 
-      await register(formData, role)
+      await register(trimObjectStringValues(formData), role)
       toast.success('User registered successfully')
     } catch (error) {
       toast.error(error.message || 'An error occurred during registration.')

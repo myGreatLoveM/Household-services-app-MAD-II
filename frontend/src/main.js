@@ -16,10 +16,10 @@ import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
-      cacheTime: 10 * 60 * 1000,
+      staleTime: 2 * 60 * 1000,
+      cacheTime: 3 * 60 * 1000,
       retry: 1,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
     },
     mutations: {
       retry: 1,

@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/authStore.js'
 import { useToast } from 'vue-toastification'
 import { validateLoginForm } from '@/validations/authFormValidation.js'
 import InputField from '@/components/InputField.vue'
-
+import { trimObjectStringValues } from '@/utils.js'
 
 const { login } = useAuthStore()
 const toast = useToast()
@@ -36,7 +36,7 @@ const handleLogin = async () => {
   if (isLoginFormValid || !isloginFormButtonDisabled.value) {
     isLoading.value = true
     try {
-      await login({...loginForm})
+      await login(trimObjectStringValues({...loginForm}))
       toast.success('User logged in successfully')
     } catch (error) {
       toast.error(error.message || 'An error occurred during login.')

@@ -9,6 +9,13 @@ export const UserRoles = Object.freeze({
 
 export const UserStatus = Object.freeze({
   APPROVED: 'approved',
-  NOT_APPROVED: 'not-approved',
+  PENDING: 'pending',
+  BLOCKED: 'blocked',
+})
+
+
+export const ServiceStatus = Object.freeze({
+  APPROVED: 'approved',
+  PENDING: 'pending',
   BLOCKED: 'blocked',
 })

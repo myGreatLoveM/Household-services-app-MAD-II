@@ -1,13 +1,19 @@
 <script setup>
 import { RouterLink } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useAuthNUserStore } from '@/stores/authNUserStore.js'
+import { useAuthUserStore } from '@/stores/authUserStore.js'
 import { UserRoles } from '@/constants.js'
 import { ref } from 'vue'
 
-const authNUserStore = useAuthNUserStore()
+defineProps({
+  isModalOpen: {
+    type: Boolean,
+  },
+})
 
-const { username, role, provider, customer } = storeToRefs(authNUserStore)
+const authUserStore = useAuthUserStore()
+
+const { username, role, provider, customer } = storeToRefs(authUserStore)
 
 const dashboard = ref(null)
 
@@ -21,7 +27,7 @@ if (role.value === UserRoles.ADMIN) {
 </script>
 
 <template>
-  <header>
+  <header :class="isModalOpen && 'opacity-50'">
     <nav class="relative w-full">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
         <div class="inline-flex items-center space-x-2">

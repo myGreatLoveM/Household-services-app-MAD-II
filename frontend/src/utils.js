@@ -1,10 +1,7 @@
-
-
 export function formatDate(dateString) {
   const options = { year: 'numeric', month: 'long', day: 'numeric' }
   return new Date(dateString).toLocaleDateString('en-US', options)
 }
-
 
 export function getAuthToken() {
   const token = JSON.parse(localStorage.getItem('auth-token')) || null
@@ -26,4 +23,25 @@ export function getRefreshToken() {
     console.warn('No refresh token found in localStorage')
     return null
   }
+}
+
+export function trimObjectStringValues(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => {
+      if (typeof value === 'string') {
+        value = value.trim()
+      }
+      return [key, value]
+    }),
+  )
+}
+
+
+export function parseNumericFields(obj) {
+  Object.entries(obj).forEach(([k, v]) => {
+    if (typeof v === 'string' && !isNaN(v) && v.trim() !== '') {
+      obj[k] = parseInt(v)
+    }
+  })
+  return obj
 }

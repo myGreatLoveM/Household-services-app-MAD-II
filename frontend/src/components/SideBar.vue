@@ -1,6 +1,6 @@
 <script setup>
 import { storeToRefs } from 'pinia'
-import { useAuthNUserStore } from '@/stores/authNUserStore.js'
+import { useAuthUserStore } from '@/stores/authUserStore.js'
 import { UserRoles } from '@/constants.js'
 
 defineProps({
@@ -12,16 +12,19 @@ defineProps({
     type: Array,
   },
   isModalOpen: {
-    type: Boolean
-  }
+    type: Boolean,
+  },
 })
 
-const authNUserStore = useAuthNUserStore()
-const { role, provider, customer } = storeToRefs(authNUserStore)
+const authUserStore = useAuthUserStore()
+const { role, provider, customer } = storeToRefs(authUserStore)
 </script>
 
 <template>
-  <aside :class="isModalOpen && 'opacity-50'" class="flex max-h-screen w-64 flex-col overflow-y-auto border-r bg-white px-5 py-8">
+  <aside
+    :class="isModalOpen && 'opacity-50'"
+    class="flex max-h-screen w-64 flex-col overflow-y-auto border-r bg-white px-5 py-8"
+  >
     <RouterLink :to="{ name: 'home' }" class="font-bold text-xl tracking-wide">
       HouseHelpNow
     </RouterLink>

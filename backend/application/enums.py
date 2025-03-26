@@ -13,15 +13,16 @@ class UserGenderEnum(Enum):
 
 class UserStatusEnum(Enum):
     APPROVE = 'approved'
-    NOT_APPROVED = 'not-approved'
-    BLOCK = 'block'
-    UNBLOCK = 'unblock'
+    PENDING = 'pending'
+    BLOCK = 'blocked'
+    UNBLOCK = 'unblocked'
 
 
 class ProviderServiceStatusEnum(Enum):
-    APPROVE = 'approve'
-    BLOCK = 'block'
-    UNBLOCK = 'unblock'
+    APPROVE = 'approved'
+    PENDING = 'pending'
+    BLOCK = 'blocked'
+    UNBLOCK = 'unblocked'
     CONTINUE = 'continue'
     DISCONTINUE = 'discontinue'
 

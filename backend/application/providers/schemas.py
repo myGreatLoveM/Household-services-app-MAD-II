@@ -1,4 +1,4 @@
-from marshmallow import fields
+from marshmallow import Schema, ValidationError, fields, validate, validates, pre_load
 from .models import Provider, Service
 from application.extensions import ma
 
@@ -11,7 +11,7 @@ class ProviderSchema(ma.SQLAlchemyAutoSchema):
         include_fk = False
         include_relationships = False
 
-    user = fields.Nested('UserSchema', dump_only=True, only=['username'])
+    user = fields.Nested('UserSchema', dump_only=True, only=['username', 'profile'])
     category = fields.Nested('CategorySchema', dump_only=True, only=['name'])
     services = fields.List(fields.Nested('ServiceSchema', many=True, exclude=['provider', 'bookings']))
     location = fields.Method('get_location')
@@ -29,8 +29,35 @@ class ServiceSchema(ma.SQLAlchemyAutoSchema):
         include_relationships = False
         include_fk = False
 
+    provider = fields.Nested('ProviderSchema', dump_only=True, exclude=['services', 'wallet'])
 
-
+class CreateServiceSchema(Schema):
+    name = fields.String(
+        required=True,
+        validate=validate.Length(min=3, max=50),
+        error_messages={
+            "required": "Service name is required.",
+            "min": "Service name must be at least 3 characters long.",
+            "max": "Service name must not exceed 50 characters."
+        }
+    )
+    price = fields.Number(
+        required=True,
+        validate=validate.Range(min=100),
+        error_messages={
+            "required": "price is required.",
+            "min": "price must be at least 100 INR",
+        }
+    )
+    time = fields.Number(
+        required=True,
+        validate=validate.Range(min=1),
+        error_messages={
+            "required": "Time is required.",
+            "min": "Time must be at least 1 hr",
+        }
+    )
+    description = fields.String()
 
 
 

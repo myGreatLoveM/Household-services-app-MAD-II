@@ -64,6 +64,7 @@ class Profile(db.Model):
     contact = db.Column(db.String(20))
     bio = db.Column(db.Text)
     location = db.Column(db.String(30))
+    
 
     created_at = db.Column(db.DateTime(), default=datetime.now)
     updated_at = db.Column(db.DateTime(), default=datetime.now, onupdate=datetime.now)

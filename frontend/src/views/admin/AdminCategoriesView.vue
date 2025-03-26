@@ -3,7 +3,6 @@ import { onMounted, ref, watch } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 import { useToast } from "vue-toastification";
 import { useRoute } from "vue-router";
-import { useAuthStore } from "@/stores/authStore.js";
 import { getAllCategoriesForAdminDashboard } from "@/services/adminService.js";
 
 import PaginationBar from "@/components/PaginationBar.vue";
@@ -12,7 +11,7 @@ import ErrorState from "@/components/ErrorState.vue";
 import CategoryAddModal from "@/modals/CategoryAddModal.vue";
 import { formatDate } from "@/utils.js";
 
-const authStore = useAuthStore()
+
 const toast = useToast();
 const route = useRoute();
 
@@ -22,7 +21,7 @@ const isCategoryModelOpen = ref(false);
 
 const { data, isPending, refetch, isError, error } = useQuery({
   queryKey: () => ["admin", "categories", page.value],
-  queryFn: async () => await getAllCategoriesForAdminDashboard(page.value, authStore.authToken),
+  queryFn: async () => await getAllCategoriesForAdminDashboard(page.value),
   enabled: isEnabled.value,
   keepPreviousData: true,
 });
@@ -57,8 +56,11 @@ const closeCategoryModal = () => {
   emit('categoryModalClose')
 };
 
-const emit = defineEmits(['categoryModalOpen', 'categoryModalClose'])
+const refetchCategories = () => {
+  refetch()
+}
 
+const emit = defineEmits(['categoryModalOpen', 'categoryModalClose'])
 </script>
 
 <template>
@@ -166,5 +168,5 @@ const emit = defineEmits(['categoryModalOpen', 'categoryModalClose'])
   />
 
 </section>
-<CategoryAddModal v-if="isCategoryModelOpen" :closeCategoryModal="closeCategoryModal" />
+<CategoryAddModal v-if="isCategoryModelOpen" :closeCategoryModal="closeCategoryModal" @create-category="refetchCategories" />
 </template>

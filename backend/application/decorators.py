@@ -14,17 +14,15 @@ def role_required(role):
             
             if current_user.roles[0].name == UserRoleEnum.PROVIDER.value:
                 provider = current_user.provider
-                if provider.id != kwargs.get('prov_id'):
+                if not provider and provider.id != kwargs.get('prov_id'):
                     return error_response('Access denied, you are not authorized for others resource!!', status_code=403)
 
             if current_user.roles[0].name == UserRoleEnum.CUSTOMER.value:
                 customer = current_user.customer
-                if customer.id != kwargs.get('cust_id'):
+                if not customer and customer.id != kwargs.get('cust_id'):
                     return error_response('Access denied, you are not authorized for others resource!!', status_code=403)
             return f(*args, **kwargs)
         return decorated_function
     return decorator
-
-
 
    

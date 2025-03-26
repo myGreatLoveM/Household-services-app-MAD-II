@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { useAuthStore } from '@/stores/authStore.js'
-import { useAuthNUserStore } from '@/stores/authNUserStore.js'
+import { useAuthUserStore } from '@/stores/authUserStore.js'
 
 import AppLayout from '@/layouts/AppLayout.vue'
 import AdminLayout from '@/layouts/AdminLayout.vue'
@@ -21,7 +21,6 @@ import ServerErrorView from '@/views/error/ServerErrorView.vue'
 import UnauthorizedView from '@/views/error/UnauthorizedView.vue'
 
 import { UserRoles } from '@/constants.js'
-
 
 const toast = useToast()
 
@@ -60,13 +59,13 @@ const router = createRouter({
       component: CustomerLayout,
       meta: { requiresAuth: true, roles: [UserRoles.CUSTOMER] },
       beforeEnter: (to, from, next) => {
-        const authNUserStore = useAuthNUserStore()
-        const currentCustId = authNUserStore.customer.id
+        const authUserStore = useAuthUserStore()
+        const currentCustId = authUserStore.customer.id
         const targetCustId = to.params.custId
 
         if (currentCustId !== parseInt(targetCustId)) {
           next({ name: 'unauthorized' })
-        } else if (authNUserStore.isCustomerBlocked) {
+        } else if (authUserStore.isCustomerBlocked) {
           next({ name: 'customer-blocked', params: { custId: currentCustId } })
         } else {
           next()
@@ -79,16 +78,16 @@ const router = createRouter({
       component: ProviderLayout,
       meta: { requiresAuth: true, roles: [UserRoles.PROVIDER] },
       beforeEnter: (to, from, next) => {
-        const authNUserStore = useAuthNUserStore()
-        const currentProvId = authNUserStore.provider.id
+        const authUserStore = useAuthUserStore()
+        const currentProvId = authUserStore.provider.id
         const targetProvId = parseInt(to.params.provId)
 
         if (currentProvId !== targetProvId) {
           next({ name: 'unauthorized' })
-        } else if (!authNUserStore.isProviderApproved) {
+        } else if (!authUserStore.isProviderApproved) {
           console.log('provider not approved')
           next({ name: 'provider-not-approved', params: { provId: currentProvId } })
-        } else if (authNUserStore.isProviderBlocked) {
+        } else if (authUserStore.isProviderBlocked) {
           next({ name: 'provider-blocked', params: { provId: currentProvId } })
         } else {
           next()
@@ -132,16 +131,14 @@ const router = createRouter({
   ],
 })
 
-
-
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  const authNUserStore = useAuthNUserStore()
+  const authUserStore = useAuthUserStore()
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     toast.error('User is not loggedin!!')
     next({ name: 'login', query: { redirect: to.fullPath } })
-  } else if (to.meta.requiresAuth && to.meta.roles && !to.meta.roles.includes(authNUserStore.role)) {
+  } else if (to.meta.requiresAuth && to.meta.roles && !to.meta.roles.includes(authUserStore.role)) {
     next({ name: 'unauthorized' })
   } else {
     next()

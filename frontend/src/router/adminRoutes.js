@@ -1,11 +1,17 @@
-import AdminBookingView from '@/views/admin/AdminBookingView.vue'
-import AdminCategoryView from '@/views/admin/AdminCategoryView.vue'
-import AdminCustomerView from '@/views/admin/AdminCustomerView.vue'
-import AdminPaymentView from '@/views/admin/AdminPaymentView.vue'
-import AdminProviderView from '@/views/admin/AdminProviderView.vue'
-import AdminServiceView from '@/views/admin/AdminServiceView.vue'
+import AdminBookingsView from '@/views/admin/AdminBookingsView.vue'
+import AdminCategoriesView from '@/views/admin/AdminCategoriesView.vue'
+import AdminCustomersView from '@/views/admin/AdminCustomersView.vue'
+import AdminPaymentsView from '@/views/admin/AdminPaymentsView.vue'
+import AdminProvidersView from '@/views/admin/AdminProvidersView.vue'
+import AdminServicesView from '@/views/admin/AdminServicesView.vue'
 import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
-import AdminNewProvidersView from '@/views/admin/AdminNewProvidersView.vue'
+import AdminPendingProvidersView from '@/views/admin/AdminPendingProvidersView.vue'
+import AdminSingleCategoryView from '@/views/admin/AdminSingleCategoryView.vue'
+import AdminSingleServiceView from '@/views/admin/AdminSingleServiceView.vue'
+import AdminPendingServicesView from '@/views/admin/AdminPendingServicesView.vue'
+
+
+
 
 export const adminRoutes = [
   {
@@ -15,37 +21,67 @@ export const adminRoutes = [
   },
   {
     path: 'categories',
-    name: 'admin-categories',
-    component: AdminCategoryView,
+    children: [
+      {
+        path: '',
+        name: 'admin-categories',
+        component: AdminCategoriesView,
+      },
+      {
+        path: ':catId(\\d+)',
+        name: 'admin-single-category',
+        component: AdminSingleCategoryView,
+      },
+    ],
   },
   {
     path: 'services',
-    name: 'admin-services',
-    component: AdminServiceView,
+    children: [
+      {
+        path: '',
+        name: 'admin-services',
+        component: AdminServicesView,
+      },
+      {
+        path: ':serviceId(\\d+)',
+        name: 'admin-single-service',
+        component: AdminSingleServiceView,
+      },
+      {
+        path: 'pending',
+        name: 'admin-services-pending',
+        component: AdminPendingServicesView,
+      },
+    ],
   },
   {
     path: 'providers',
-    name: 'admin-providers',
-    component: AdminProviderView,
-  },
-  {
-    path: 'providers/not-approved',
-    name: 'admin-providers-not-approved',
-    component: AdminNewProvidersView
+    children: [
+      {
+        path: '',
+        name: 'admin-providers',
+        component: AdminProvidersView,
+      },
+      {
+        path: 'pending',
+        name: 'admin-providers-pending',
+        component: AdminPendingProvidersView,
+      },
+    ],
   },
   {
     path: 'customers',
     name: 'admin-customers',
-    component: AdminCustomerView,
+    component: AdminCustomersView,
   },
   {
     path: 'bookings',
     name: 'admin-bookings',
-    component: AdminBookingView,
+    component: AdminBookingsView,
   },
   {
     path: 'payments',
     name: 'admin-payments',
-    component: AdminPaymentView,
+    component: AdminPaymentsView,
   },
 ]

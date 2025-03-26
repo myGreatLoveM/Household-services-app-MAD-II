@@ -2,7 +2,7 @@ import { UserRoles } from '@/constants'
 import { defineStore } from 'pinia'
 
 
-export const useAuthNUserStore = defineStore('authNUserStore', {
+export const useAuthUserStore = defineStore('authUserStore', {
   state: () => ({
     username: (() => {
       try {
