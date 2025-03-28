@@ -7,6 +7,7 @@ from application.admin.models import Category
 from application.providers.models import Provider, Service
 from application.customers.models import Booking, Customer
 from application.customers.schemas import BookingSchema
+from application.providers.schemas import ServiceSchema
 from .mail import send_email
 from .utils import format_report
 
@@ -43,20 +44,20 @@ def provider_closed_bookings_csv_export(prov_id):
             closed_date = booking.get('closed_date')
             commission = booking.get('payment').get('commission_fee')
             booking_amount = booking.get('payment').get('amount')
-            final_amount = booking_amount -commission
+            final_amount = booking_amount - commission
    
             closed_booking_csv.writerow([booking_id, service_name, customer, booking_date, closed_date, commission, booking_amount, final_amount])
     
-    prov_username = provider.user.username
+    prov_email = provider.user.email
     message = format_report('templates/prov_closed_bookings.html')
 
     send_email(
-        to_address=prov_username,
+        to_address=prov_email,
         subject='closed booking csv export',
         message=message,
         attachment_file=f'static/{csv_file_name}'
     )
-
+    time.sleep(20)
     return csv_file_name
 
 
@@ -108,4 +109,49 @@ def customer_bookings_monthly_report():
 
     return 'Monthly Report sent to all customers.....'
 
-        
+
+@shared_task(ignore_result=True, name='admin_closed_booking_batch_csv_export')
+def admin_closed_booking_batch_csv_export():
+    closed_bookings = Booking.query.filter_by(is_closed=True).all()
+    booking_schema = BookingSchema(exclude=['review'])
+    service_schema = ServiceSchema()
+
+    csv_file_name = f"admin_closed_bookings_{datetime.now().strftime('%f')}.csv" 
+
+    with open(f'static/{csv_file_name}', 'w', newline = "") as csvfile:
+
+        closed_booking_csv = csv.writer(csvfile, delimiter = ',')
+        closed_booking_csv.writerow(['Booking ID','Service','Category','Provider','Customer','Booking Date','Closed Date','Payment Date','Commission Fee','Platform Fee','Transaction Fee','Booking Amount','Final Amount'])
+
+        for booking_obj in closed_bookings:
+            service = service_schema.dump(booking_obj.service)
+            booking = booking_schema.dump(booking_obj)
+
+            booking_id = booking.get('id')
+            service_name = service.get('name')
+            category_name = service.get('provider').get('category').get('name')
+            provider_name = service.get('provider').get('user').get('username')
+            customer_name = booking.get('customer').get('user').get('username')
+            booking_date = booking.get('book_date')
+            closed_date = booking.get('closed_date')
+            payment_date = booking.get('payment').get('updated_at')
+            commission_fee = booking.get('payment').get('commission_fee')
+            platform_fee = booking.get('payment').get('platform_fee')
+            transaction_fee = booking.get('payment').get('transaction_fee')
+            booking_amount = booking.get('payment').get('amount')
+            final_amount = booking_amount + platform_fee + transaction_fee
+
+            closed_booking_csv.writerow([booking_id,service_name,category_name,provider_name,customer_name,booking_date,closed_date,payment_date,commission_fee,platform_fee,transaction_fee,booking_amount,final_amount])
+
+    message = format_report('templates/prov_closed_bookings.html')
+
+    send_email(
+        to_address='admin@househelpnow.com',
+        subject='batch closed booking csv export',
+        message=message,
+        attachment_file=f'static/{csv_file_name}'
+    )
+
+    return csv_file_name
+
+

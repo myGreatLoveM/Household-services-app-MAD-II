@@ -15,11 +15,29 @@ def test():
     return {'msg': 'ok'}, 200
 
 
+import os
+@home_bp.route('/serve-file/<filename>')
+def serve(filename):
+  if os.path.exists(os.path.join('static', filename)):
+    return send_from_directory(directory='static',path=filename)
+  return {}, 404
+
+
 
 # celery experiment
 
 from celery.result import AsyncResult
-from .tasks import provider_closed_bookings_csv_export
+from .tasks import provider_closed_bookings_csv_export, admin_closed_booking_batch_csv_export
+
+
+@home_bp.route('/admin/bookings/csv-exports')
+def batch_export():
+  task = admin_closed_booking_batch_csv_export.delay()
+  return {
+     'id': task.id
+  }
+
+
 
 
 @home_bp.route('/exports/<int:prov_id>')

@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/authStore.js"
+import { useToast } from "vue-toastification"
 
 
 export async function getAllServicesForProviderDashboard(provId, page) {
@@ -361,6 +362,7 @@ export async function getProfileForProviderDashboard(provId) {
 export async function exportClosedBookingData(provId) {
   try {
     const authStore = useAuthStore()
+    const toast = useToast()
 
     if (!authStore.authToken) {
       throw new Error('Auth token required to fetch data!!')
@@ -374,7 +376,7 @@ export async function exportClosedBookingData(provId) {
       },
     })
     const respData = await resp.json()
-    
+
     if (resp.status == 401 && respData?.errors?.token_type) {
       authStore.refreshExpiredAuthToken()
       throw new Error('Auth Token Expired!!')
@@ -387,6 +389,7 @@ export async function exportClosedBookingData(provId) {
     if (!respData.data && !respData.data.id) {
       throw new Error('Response has missing required fields: task id')
     }
+
     const taskId = respData.data.id
 
     const intervalId = setInterval(async () => {
@@ -410,6 +413,7 @@ export async function exportClosedBookingData(provId) {
 
         if (status === 'SUCCESS') {
           console.log('export success')
+          toast.success('Export success, check your mail')
           clearInterval(intervalId)
         } else if (status === 'FAILURE') {
           clearInterval(intervalId)
@@ -418,11 +422,13 @@ export async function exportClosedBookingData(provId) {
       } catch (error) {
         console.error('Error checking task status:', error)
         clearInterval(intervalId)
-      }
-    }, 1)
+      } 
+    }, 2000)
 
-
+    return { taskId }
   } catch (error) {
     throw new Error(error.message || 'Something went wrong during booking export!!')
   }
 }
+
+

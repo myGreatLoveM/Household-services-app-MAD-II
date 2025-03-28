@@ -275,7 +275,25 @@ class ProviderBookingMgmtAPI(Resource):
   @jwt_required()
   @role_required(UserRoleEnum.PROVIDER.value)
   def get(self, prov_id, booking_id):
-    pass
+    try:
+      booking = Booking.query.filter_by(id=booking_id).first()
+
+      if not booking:
+        return error_response(f'Booking not exist with id {booking_id}', status_code=400)
+      
+      schema = BookingSchema()
+      data = {
+        'booking': schema.dump(booking)
+      }
+      return success_response(data=data)
+
+    except SQLAlchemyError as e:
+      print(e)
+      return error_response('Something went wrong while fetching booking!!')
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
+
 
   @jwt_required()
   @role_required(UserRoleEnum.PROVIDER.value)
@@ -367,7 +385,6 @@ class ProviderBookingMgmtAPI(Resource):
 
 
 
-
 class ProviderClosedBookingCSVExport(Resource):
 
   @jwt_required()
@@ -379,12 +396,13 @@ class ProviderClosedBookingCSVExport(Resource):
         'id': task.id,
         'status':  task.status 
       }
+      print(data)
       return success_response(data=data, status_code=202)
     except Exception as e:
       print(e)
       return error_response('Something went wrong, please try again..')
 
-
+  
 class ProviderClosedBookingTask(Resource):
 
   @jwt_required()

@@ -10,7 +10,7 @@ import { formatDate } from '@/utils.js'
 import {
   getAllBookingsForProviderDashboard,
   closeBookingForProviderDashboard,
-  exportClosedBookingData
+  exportClosedBookingData,
 } from '@/services/providerService'
 import { useAuthUserStore } from '@/stores/authUserStore'
 import { BookingStatus, PaymentStatus } from '@/constants'
@@ -57,7 +57,9 @@ const {
   isError: isExportError,
 } = useMutation({
   mutationFn: () => exportClosedBookingData(provId),
+  retry: 0
 })
+
 
 onMounted(async () => {
   isEnabled.value = true
@@ -99,9 +101,10 @@ watch(isCloseSuccess, (isCloseSuccessVal) => {
   }
 })
 
+
 watch(isExportSuccess, (isExportSuccessVal) => {
   if (isExportSuccessVal) {
-    toast.success('Closed bookings data exported, check your mail')
+    toast.success('Export starting...')
   }
 })
 
