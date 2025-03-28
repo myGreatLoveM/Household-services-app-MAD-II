@@ -15,6 +15,9 @@ from application.core.schemas import ProfileSchema, UserSchema
 from application.decorators import role_required
 from application.utils import error_response, success_response
 from application.enums import BookingStatusEnum, PaymentStatusEnum, UserRoleEnum
+from application.tasks import provider_closed_bookings_csv_export
+from celery.result import AsyncResult
+
 
 
 class ProviderDashboardStatsAPI(Resource):
@@ -361,6 +364,46 @@ class ProviderBookingMgmtAPI(Resource):
     except Exception as e:
       print(e)
       return error_response('Something went wrong, please try again..')
+
+
+
+
+class ProviderClosedBookingCSVExport(Resource):
+
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def post(self, prov_id):
+    try:
+      task = provider_closed_bookings_csv_export.delay(prov_id)
+      data = {
+        'id': task.id,
+        'status':  task.status 
+      }
+      return data, 202
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
+
+
+class ProviderClosedBookingTask(Resource):
+
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def get(self, prov_id, task_id):
+    try:
+      task = AsyncResult(task_id)
+
+      data = {
+        'id': task.id,
+        'status': task.status,
+        'filename': task.result
+      }
+      return success_response(data)
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
+
+
 
 
 class ProviderProfileAPI(Resource):

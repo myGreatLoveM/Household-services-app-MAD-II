@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 import re
 import time
 
+from jinja2 import Template
+
 
 EMAIL_REGEX = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
 
@@ -48,3 +50,11 @@ def error_response(err_message='', errors={}, status_code=500):
     }
     
     return resp, status_code
+
+
+def format_report(html_template, data = None):
+    with open(html_template) as file:
+        template = Template(file.read())
+        if not data:
+            return template.render()
+        return template.render(data = data)

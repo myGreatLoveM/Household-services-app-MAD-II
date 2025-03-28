@@ -22,12 +22,17 @@ import UnauthorizedView from '@/views/error/UnauthorizedView.vue'
 
 import { UserRoles } from '@/constants.js'
 import PaymentView from '@/views/PaymentView.vue'
+import TestTriggeredJob from '@/views/TestTriggeredJob.vue'
 
 const toast = useToast()
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/test',
+      component: TestTriggeredJob
+    },
     {
       path: '',
       component: AppLayout,

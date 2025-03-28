@@ -11,7 +11,7 @@ from .errors import error_bp
 
 
 def create_app(main_file: str, config_obj: Config) -> Flask:
-    app = Flask(main_file)
+    app = Flask(main_file, template_folder=config_obj.TEMPLATES_FOLDER, static_folder=config_obj.STATIC_FOLDER)
 
     app.config.from_object(config_obj)
 

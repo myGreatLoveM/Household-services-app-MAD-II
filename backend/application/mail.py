@@ -5,11 +5,11 @@ from email.mime.base import MIMEBase
 from email import encoders
 from jinja2 import Template
 
+
 SMTP_SERVER_HOST = "localhost"
 SMTP_SERVER_PORT = 1025
-SENDER_ADDRESS = "fastlogistics@donotreply.in"
+SENDER_ADDRESS = "househelpnow@donotreply.in"
 SENDER_PASSWORD = ""
-
 
 
 def send_email(to_address, subject, message, content = "html", attachment_file = None):   #default content -> html

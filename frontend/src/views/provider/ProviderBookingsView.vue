@@ -7,7 +7,10 @@ import PaginationBar from '@/components/PaginationBar.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import { formatDate } from '@/utils.js'
-import { getAllBookingsForProviderDashboard, closeBookingForProviderDashboard } from '@/services/providerService'
+import {
+  getAllBookingsForProviderDashboard,
+  closeBookingForProviderDashboard,
+} from '@/services/providerService'
 import { useAuthUserStore } from '@/stores/authUserStore'
 import { BookingStatus, PaymentStatus } from '@/constants'
 
@@ -41,8 +44,7 @@ const {
   error: closeError,
   isError: isCloseError,
 } = useMutation({
-  mutationFn: (bookingId) =>
-    closeBookingForProviderDashboard(provId, bookingId),
+  mutationFn: (bookingId) => closeBookingForProviderDashboard(provId, bookingId),
 })
 
 onMounted(async () => {
@@ -103,6 +105,11 @@ const handleCloseBooking = async (bookingId) => {
       </div>
 
       <div class="flex items-center gap-10">
+        <button
+          class="rounded-md bg-zinc-600 hover:bg-zinc-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+        >
+          Export CSV closed Bookings
+        </button>
         <RouterLink :to="{ name: 'provider-pending-bookings', params: { provId } }">
           <button
             class="rounded-md bg-zinc-600 hover:bg-zinc-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
@@ -179,7 +186,7 @@ const handleCloseBooking = async (bookingId) => {
                 active
               </span>
               <span
-                v-else-if="(booking.status === BookingStatus.COMPLETE) && !booking.is_closed"
+                v-else-if="booking.status === BookingStatus.COMPLETE && !booking.is_closed"
                 class="whitespace-nowrap rounded-full border border-pink-500 px-2.5 py-0.5 text-sm text-pink-700 bg-pink-100"
               >
                 completed
@@ -221,11 +228,11 @@ const handleCloseBooking = async (bookingId) => {
                 View
               </button>
               <button
-                v-if="(booking.status === BookingStatus.COMPLETE) && !booking.is_closed"
+                v-if="booking.status === BookingStatus.COMPLETE && !booking.is_closed"
                 @click="() => handleCloseBooking(booking.id)"
                 :disabled="isClosePending"
                 :class="isClosePending ? 'bg-zinc-400' : 'bg-zinc-600 hover:bg-zinc-700'"
-                class="inline-block rounded  px-4 py-2 text-xs font-medium text-white "
+                class="inline-block rounded px-4 py-2 text-xs font-medium text-white"
               >
                 Close
               </button>

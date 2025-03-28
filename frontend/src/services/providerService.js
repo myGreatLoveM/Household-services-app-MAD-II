@@ -355,3 +355,39 @@ export async function getProfileForProviderDashboard(provId) {
     throw new Error(error.message || 'Something went wrong fetching profile!!')
   }
 }
+
+
+
+export async function exportClosedBookingData(provId) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/providers/${provId}/bookings/`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (resp.status == 401) {
+      const respData = await resp.json()
+      if (respData?.errors?.token_type) {
+        authStore.refreshExpiredAuthToken()
+        throw new Error('Auth Token Expired!!')
+      }
+    }
+
+    if (!resp.ok) {
+      throw new Error('Failed to confirm booking!!')
+    }
+
+    return { bookingId }
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong during booking confirm!!')
+  }
+}
