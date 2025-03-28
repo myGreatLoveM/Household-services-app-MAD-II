@@ -379,7 +379,7 @@ class ProviderClosedBookingCSVExport(Resource):
         'id': task.id,
         'status':  task.status 
       }
-      return data, 202
+      return success_response(data=data, status_code=202)
     except Exception as e:
       print(e)
       return error_response('Something went wrong, please try again..')
@@ -396,7 +396,7 @@ class ProviderClosedBookingTask(Resource):
       data = {
         'id': task.id,
         'status': task.status,
-        'filename': task.result
+        'result': task.result
       }
       return success_response(data)
     except Exception as e:

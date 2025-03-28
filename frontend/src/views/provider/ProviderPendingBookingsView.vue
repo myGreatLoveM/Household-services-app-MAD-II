@@ -219,6 +219,12 @@ const handleConfirmBooking = async (bookingId) => {
               >
                 rejected
               </span>
+              <span
+                v-else-if="booking.status === BookingStatus.CANCEL"
+                class="whitespace-nowrap rounded-full border border-red-500 px-2.5 py-0.5 text-sm text-red-700"
+              >
+                cancelled
+              </span>
             </td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
               {{ formatDate(booking.book_date) }}

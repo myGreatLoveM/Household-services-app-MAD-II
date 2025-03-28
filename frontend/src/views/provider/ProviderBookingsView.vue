@@ -10,6 +10,7 @@ import { formatDate } from '@/utils.js'
 import {
   getAllBookingsForProviderDashboard,
   closeBookingForProviderDashboard,
+  exportClosedBookingData
 } from '@/services/providerService'
 import { useAuthUserStore } from '@/stores/authUserStore'
 import { BookingStatus, PaymentStatus } from '@/constants'
@@ -47,6 +48,17 @@ const {
   mutationFn: (bookingId) => closeBookingForProviderDashboard(provId, bookingId),
 })
 
+
+const {
+  isPending: isExportPending,
+  isSuccess: isExportSuccess,
+  mutate: exportMutate,
+  error: exportError,
+  isError: isExportError,
+} = useMutation({
+  mutationFn: () => exportClosedBookingData(provId),
+})
+
 onMounted(async () => {
   isEnabled.value = true
   refetchBookings()
@@ -64,6 +76,12 @@ watch(closeError, (errorVal) => {
   }
 })
 
+watch(exportError, (errorVal) => {
+  if (isExportError.value && errorVal) {
+    toast.error(errorVal.message || 'Failed to export booking data !!')
+  }
+})
+
 watch(isCloseSuccess, (isCloseSuccessVal) => {
   if (isCloseSuccessVal) {
     queryClient.invalidateQueries({
@@ -76,8 +94,14 @@ watch(isCloseSuccess, (isCloseSuccessVal) => {
         )
       },
     })
-    toast.success(`Bookig with ID ${closeBookingData.value.bookingId} close..`)
+    toast.success(`Booking with ID ${closeBookingData.value.bookingId} closed..`)
     refetchBookings()
+  }
+})
+
+watch(isExportSuccess, (isExportSuccessVal) => {
+  if (isExportSuccessVal) {
+    toast.success('Closed bookings data exported, check your mail')
   }
 })
 
@@ -88,6 +112,10 @@ watch(
     refetchBookings()
   },
 )
+
+const handleExport = async () => {
+  exportMutate()
+}
 
 const handleCloseBooking = async (bookingId) => {
   closeBookingMutate(bookingId)
@@ -106,9 +134,11 @@ const handleCloseBooking = async (bookingId) => {
 
       <div class="flex items-center gap-10">
         <button
+          @click="handleExport"
+          @diabled="isExportPending"
           class="rounded-md bg-zinc-600 hover:bg-zinc-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
         >
-          Export CSV closed Bookings
+          Export CSV Closed Bookings
         </button>
         <RouterLink :to="{ name: 'provider-pending-bookings', params: { provId } }">
           <button
@@ -149,7 +179,7 @@ const handleCloseBooking = async (bookingId) => {
               Payment Status
             </th>
             <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-              Booked On
+              Booking Date
             </th>
             <th scope="col" class="px-4 py-2">Action</th>
           </tr>

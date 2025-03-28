@@ -9,9 +9,8 @@
 <body>
     <div class="container">
         <div class="row">
-            <h1 class="text-center mt-2">Closed Bookings Details</h1>
-            <p class="fs-3">Hello {{ prov_username }}</p>
-            <p class="fs-5">Please refer to the monthly Bookings made by you in this month</p>
+            <h1 class="text-center mt-2">Monthly Booking Report</h1>
+            <p class="fs-3">Hello {{ data['username'] }}</p>
         </div>
         <div class="row">
             <table class="table table-striped mx-2">
@@ -19,34 +18,31 @@
                     <tr>
                         <th scope="col">Booking ID</th>
                         <th scope="col">Service Name</th>
-                        <th scope="col">Category</th>
-                        <th scope="col">Customer</th>
+                        <th scope="col">Category Name</th>
+                        <th scope="col">Status</th>
                         <th scope="col">Booking Date</th>
-                        <th scope="col">Total Amount</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for t in data['transactions'] %}
-                    <tr>
-                        <th scope="row">{{loop.index}}</th>
-                        <td>{{ booking['id'] }}</td>
-                        <td>{{ booking['service_name'] }}</td>
-                        <td>{{ booking['category'] }}</td>
-                        <td>{{ booking[''] }}</td>
-                        <td>{{t['delivery']}}</td>
-                        <td>{{t['amount']}}</td>  
-                    </tr>
+                    {% for booking in data['bookings'] %}
+                        <tr>
+                            <td>{{ booking['id'] }}</td>
+                            <td>{{ booking['service'] }}</td>
+                            <td>{{ booking['category'] }}</td>
+                            <td>{{ booking['status'] }}</td>
+                            <td>{{ booking['book_date'] }}</td>
+                        </tr>
                     {% endfor %}
                 </tbody>  
             </table>
             <p class="fs-5">
-                Thank you for choosing Fast Logistics. 
+                Thank you for choosing HouseHelpNow. 
             </p>
         </div>
 
         <div class="row">
             <p class="text-center mt-2">
-                Fast logistics | &copy; Copyright 2025 | Created at IITM
+                HouseHelpNow | &copy; Copyright 2025 | Created at IITM
             </p>
         </div>
     </div>

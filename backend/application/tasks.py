@@ -2,7 +2,10 @@ import csv
 import time
 from celery import shared_task
 from datetime import datetime
-from application.providers.models import Provider
+from application.extensions import db
+from application.admin.models import Category
+from application.providers.models import Provider, Service
+from application.customers.models import Booking, Customer
 from application.customers.schemas import BookingSchema
 from .mail import send_email
 from .utils import format_report
@@ -58,14 +61,51 @@ def provider_closed_bookings_csv_export(prov_id):
 
 
 
-@shared_task(ignore_result=True, name='monthly_report')
-def monthly_report():
-    message = format_report('templates/index.html')
-    send_email(
-        to_address='test@test.com',
-        subject='monthly_report',
-        message=message
-    )
-    return 'Monthly Report sent...'
+@shared_task(ignore_result=True, name='customer_bookings_monthly_report')
+def customer_bookings_monthly_report():
+    customers = Customer.query.filter_by(is_blocked=False).all()
+
+    booking_schema = BookingSchema(exclude=['customer', 'review'])
+    for customer in customers:
+        cust_bookings = []
+
+        cust_bookings_data = (
+            db.session.query(
+                Booking, Service.name, Category.name
+            )
+            .outerjoin(Service, Booking.service)
+            .outerjoin(Provider, Service.provider)
+            .outerjoin(Category, Provider.category)
+            .filter(
+                Booking.cust_id==customer.id
+            )
+            .all()
+        )
+
+        if len(cust_bookings_data) > 0:
+            for booking_obj, service_name, category_name in cust_bookings_data:
+                booking = booking_schema.dump(booking_obj)
+                booking['service'] = service_name
+                booking['category'] = category_name
+                cust_bookings.append(booking)
+
+            cust_user_details = customer.user
+            cust_username = cust_user_details.username
+            cust_email = cust_user_details.email
+
+            data = {
+                'username': cust_username,
+                'bookings': cust_bookings
+            }
+
+            message = format_report('templates/cust_bookings_monthly_report.html', data=data)
+
+            send_email(
+                to_address=cust_email,
+                subject='monthly booking report',
+                message=message
+            )
+
+    return 'Monthly Report sent to all customers.....'
 
         

@@ -366,28 +366,63 @@ export async function exportClosedBookingData(provId) {
       throw new Error('Auth token required to fetch data!!')
     }
 
-    const resp = await fetch(`/api/v1/providers/${provId}/bookings/`, {
-      method: 'PATCH',
+    const resp = await fetch(`/api/v1/providers/${provId}/bookings/csv-export`, {
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${authStore.authToken}`,
         'Content-Type': 'application/json',
       },
     })
+    const respData = await resp.json()
+    
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
 
-    if (resp.status == 401) {
-      const respData = await resp.json()
-      if (respData?.errors?.token_type) {
-        authStore.refreshExpiredAuthToken()
-        throw new Error('Auth Token Expired!!')
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to export closed booking data !!')
+    }
+
+    if (!respData.data && !respData.data.id) {
+      throw new Error('Response has missing required fields: task id')
+    }
+    const taskId = respData.data.id
+
+    const intervalId = setInterval(async () => {
+
+      try {
+        const taskResp = await fetch(`/api/v1/providers/${provId}/bookings/csv-export/${taskId}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${authStore.authToken}`,
+            'Content-Type': 'application/json',
+          },
+        })
+
+        const taskData = await taskResp.json()
+
+        if (!taskResp.ok) {
+          throw new Error('Export failed')
+        }
+
+        const status = taskData.data?.status
+
+        if (status === 'SUCCESS') {
+          console.log('export success')
+          clearInterval(intervalId)
+        } else if (status === 'FAILURE') {
+          clearInterval(intervalId)
+          throw new Error('Export failed')
+        }
+      } catch (error) {
+        console.error('Error checking task status:', error)
+        clearInterval(intervalId)
       }
-    }
+    }, 1)
 
-    if (!resp.ok) {
-      throw new Error('Failed to confirm booking!!')
-    }
 
-    return { bookingId }
   } catch (error) {
-    throw new Error(error.message || 'Something went wrong during booking confirm!!')
+    throw new Error(error.message || 'Something went wrong during booking export!!')
   }
 }

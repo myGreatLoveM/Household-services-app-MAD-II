@@ -3,6 +3,7 @@ import ProviderDashboardView from '@/views/provider/ProviderDashboardView.vue'
 import ProviderPendingBookingsView from '@/views/provider/ProviderPendingBookingsView.vue'
 import ProviderProfileView from '@/views/provider/ProviderProfileView.vue'
 import ProviderServicesView from '@/views/provider/ProviderServicesView.vue'
+import ProviderSingleBookingView from '@/views/provider/ProviderSingleBookingView.vue'
 
 export const providerRoutes = [
   {
@@ -22,6 +23,11 @@ export const providerRoutes = [
         path: '',
         name: 'provider-bookings',
         component: ProviderBookingsView,
+      },
+      {
+        path: ':bookingId(\\d+)',
+        name: 'provider-single-booking',
+        component: ProviderSingleBookingView,
       },
       {
         path: 'pending',

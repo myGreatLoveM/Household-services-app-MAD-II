@@ -249,7 +249,6 @@ class AdminServiceMgmtAPI(Resource):
             return error_response('Somthing went wrong, please try again..')
     
 
-
 class AdminProviderListAPI(Resource):
 
     @jwt_required()
@@ -351,6 +350,8 @@ class AdminProviderMgmtAPI(Resource):
             print(e)
             return error_response('Somthing went wrong, please try again..')
 
+    @jwt_required()
+    @role_required(UserRoleEnum.ADMIN.value)
     def delete(self, prov_id):
         try:
             provider = Provider.query.filter_by(id=prov_id).first()
@@ -368,7 +369,6 @@ class AdminProviderMgmtAPI(Resource):
         except Exception as e:
             print(e)
             return error_response('Somthing went wrong, please try again..')
-
 
 
 class AdminCustomerListAPI(Resource):
@@ -418,14 +418,52 @@ class AdminCustomerListAPI(Resource):
             print(e)
             return error_response('Somthing went wrong, please try again..')
 
-class AdminCustomerAPI(Resource):
+
+class AdminCustomerMgmtAPI(Resource):
 
     @jwt_required()
     @role_required(UserRoleEnum.ADMIN.value)
     def get(self, cust_id):
         pass
     
+
     @jwt_required()
     @role_required(UserRoleEnum.ADMIN.value)
-    def patch (self, cust_id):
-        pass
+    def patch(self, cust_id):
+        try:
+            customer = Customer.query.filter_by(id=cust_id).first()
+
+            if not customer:
+                return error_response(f'Customer not exist with {cust_id}', status_code=400)
+            
+            if customer.is_blocked: 
+                customer.is_blocked = False
+                db.session.commit()
+
+            return success_response(status_code=204)
+        except SQLAlchemyError as e:
+            return error_response('Something went wrong while updating status of customer!!')
+        except Exception as e:
+            print(e)
+            return error_response('Somthing went wrong, please try again..')
+
+
+    @jwt_required()
+    @role_required(UserRoleEnum.ADMIN.value)
+    def delete(self, cust_id):
+        try:
+            customer = Customer.query.filter_by(id=cust_id).first()
+
+            if not customer:
+                return error_response(f'Customer not exist with {cust_id}', status_code=400)
+            
+            if not customer.is_blocked: 
+                customer.is_blocked = True
+                db.session.commit()
+
+            return success_response(status_code=204)
+        except SQLAlchemyError as e:
+            return error_response('Something went wrong while updating status of customer!!')
+        except Exception as e:
+            print(e)
+            return error_response('Somthing went wrong, please try again..')
