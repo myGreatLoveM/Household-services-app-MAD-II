@@ -30,6 +30,9 @@ class ServiceSchema(ma.SQLAlchemyAutoSchema):
         include_fk = False
 
     provider = fields.Nested('ProviderSchema', dump_only=True, exclude=['services', 'wallet'])
+    # bookings = fields.Nested('BookingSchema', dump_only=True, exclude=[])
+
+
 
 class CreateServiceSchema(Schema):
     name = fields.String(

@@ -9,7 +9,7 @@ import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import { formatDate } from '@/utils.js'
 import {
-  getAllServicesSpecificForProviderDashboard,
+  getAllServicesForProviderDashboard,
   continueServiceForProviderDashboard,
   discontinueServiceForProviderDashboard,
 } from '@/services/providerService'
@@ -33,7 +33,7 @@ const {
   error: serviceDataError,
 } = useQuery({
   queryKey: () => ['providers', provId, 'services', page.value],
-  queryFn: () => getAllServicesSpecificForProviderDashboard(provId, page.value),
+  queryFn: () => getAllServicesForProviderDashboard(provId, page.value),
   enabled: isEnabled.value,
   keepPreviousData: true,
 })
@@ -69,7 +69,7 @@ onMounted(async () => {
 
 watch([isServiceDataError, serviceDataError], ([isErrorVal, errorVal]) => {
   if (isErrorVal && errorVal) {
-    toast.error(errorVal.message || 'Failed to fetch data')
+    toast.error(errorVal.message || 'Failed to fetch service data')
   }
 })
 
@@ -112,7 +112,7 @@ watch(isContinueSuccess, (isContinueSuccessVal) => {
         )
       },
     })
-    toast.success(`Service ${continueServiceData.value.serviceName} discontinued..`)
+    toast.success(`Service ${continueServiceData.value.serviceName} continued..`)
     refetchServices()
   }
 })

@@ -35,8 +35,9 @@ class ProviderAvailabilityEnum(Enum):
 
 class BookingStatusEnum(Enum):
     PENDING = 'pending'
-    CONFIRM = 'confirmed'
     REJECT = 'rejected'
+    CONFIRM = 'confirmed'
+    CANCEL = 'cancelled'
     ACTIVE = 'active'
     COMPLETE = 'completed'
     CLOSE = 'closed'
@@ -45,7 +46,7 @@ class BookingStatusEnum(Enum):
 class PaymentStatusEnum(Enum):
     PENDING = 'pending'
     PAID = 'paid'
-    CANCELLED = 'cancelled'
+    CANCEL = 'cancelled'
 
 
 class PaymentMethodEnum(Enum):

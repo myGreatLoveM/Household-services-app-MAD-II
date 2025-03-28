@@ -1,11 +1,45 @@
 
 
+export const validateBookingForm = (bookingForm, bookingFormErrors) => {
+  if (!bookingForm || !bookingFormErrors) {
+    return false
+  }
+
+  const today = new Date()
+  const bookDate = new Date(bookingForm.bookDate)
+  const fullfillmentDate = new Date(bookingForm.fullfillmentDate)
+
+  if (!bookingForm.bookDate) {
+    bookingFormErrors.bookDate = 'Book date is required'
+  } else if (bookDate < today) {
+    bookingFormErrors.bookDate = 'Select valid book date'
+  } else {
+    bookingFormErrors.bookDate = ''
+  }
+
+  if (!bookingForm.fullfillmentDate) {
+    bookingFormErrors.fullfillmentDate = 'Fullfillment date is required'
+  } else if (!!bookDate && (fullfillmentDate < bookDate)) {
+    bookingFormErrors.fullfillmentDate = 'Select valid fullfillment date'
+  } else {
+    bookingFormErrors.fullfillmentDate = ''
+  }
+
+  const isFormInvalid = Object.values(bookingFormErrors).some((error) => error !== '')
+  return isFormInvalid
+}
+
+
+
+
+
+
 export const validateServiceForm = (serviceForm, serviceFormErrors) => {
   if (!serviceForm || !serviceFormErrors) {
     return false
   }
 
-  
+
   if (!serviceForm.name) {
     serviceFormErrors.name = 'Name is required'
   } else if (serviceForm.name.length < 3) {

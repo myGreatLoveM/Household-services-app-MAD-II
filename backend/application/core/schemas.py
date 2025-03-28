@@ -22,9 +22,6 @@ class UserSchema(ma.SQLAlchemyAutoSchema):
     customer = fields.Method('get_customer_relationship')
     profile = fields.Nested('ProfileSchema')
 
-    # created_at = fields.DateTime(format='%Y-%m-%d %H:%M:%S')
-    # updated_at = fields.DateTime(format='%Y-%m-%d %H:%M:%S')
-
     def get_role_from_relationship(self, obj):
         roles_schema = RoleSchema(many=True)
         roles = roles_schema.dump(obj.roles)

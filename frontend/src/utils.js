@@ -36,7 +36,6 @@ export function trimObjectStringValues(obj) {
   )
 }
 
-
 export function parseNumericFields(obj) {
   Object.entries(obj).forEach(([k, v]) => {
     if (typeof v === 'string' && !isNaN(v) && v.trim() !== '') {
@@ -44,4 +43,12 @@ export function parseNumericFields(obj) {
     }
   })
   return obj
+}
+
+export function generateRandomNumberString(length) {
+  let randomNumber = ''
+  for (let i = 0; i < length; i++) {
+    randomNumber += Math.floor(Math.random() * 10) // Generates a digit between 0-9
+  }
+  return randomNumber
 }

@@ -4,14 +4,14 @@ import RatingStar from '@/components/RatingStar.vue'
 defineProps({
   id: Number,
   name: String,
-  price: String,
-  time: String,
+  price: Number,
+  time: Number,
   category: String,
   provider: String,
-  provExperience: String,
-  avgRating: String,
-  totalReviews: String,
-  totalBookings: String,
+  provExperience: Number,
+  avgRating: Number,
+  totalReviews: Number,
+  totalBookings: Number,
 })
 </script>
 

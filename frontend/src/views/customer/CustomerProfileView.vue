@@ -6,9 +6,9 @@ import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import InputField from '@/components/InputField.vue'
 import {
-  getProfileForProviderDashboard,
-  updateProfileForProviderDashboard,
-} from '@/services/providerService'
+  getProfileForCustomerDashboard,
+  updateProfileForCustomerDashboard,
+} from '@/services/customerService.js'
 import { useAuthUserStore } from '@/stores/authUserStore.js'
 import { formatDate, trimObjectStringValues } from '@/utils.js'
 
@@ -16,16 +16,16 @@ const queryClient = useQueryClient()
 const authUserStore = useAuthUserStore()
 const toast = useToast()
 
-const provId = parseInt(authUserStore.provider.id)
+const custId = parseInt(authUserStore.customer.id)
 
 const {
-  data: provProfileData,
-  isPending: isProvProfilePending,
-  isError: isProvProfileError,
-  error: provProfileError,
+  data: custProfileData,
+  isPending: isCustProfilePending,
+  isError: isCustProfileError,
+  error: custProfileError,
 } = useQuery({
-  queryKey: () => ['providers', provId, 'profile'],
-  queryFn: () => getProfileForProviderDashboard(provId),
+  queryKey: () => ['customers', custId, 'profile'],
+  queryFn: () => getProfileForCustomerDashboard(custId),
 })
 
 const {
@@ -35,26 +35,27 @@ const {
   error: updateError,
   mutate: updateProfileMutate,
 } = useMutation({
-  mutationFn: ({ provId, profileData }) => updateProfileForProviderDashboard(provId, profileData),
+  mutationFn: ({ custId, profileData }) => updateProfileForCustomerDashboard(custId, profileData),
 })
 
 const profileFormFields = {
-  firstName: provProfileData.value?.user?.profile?.first_name || '',
-  lastName: provProfileData.value?.user?.profile?.last_name || '',
-  contact: provProfileData.value?.user?.profile?.contact || '',
-  location: provProfileData.value?.user?.profile?.location || '',
-  bio: provProfileData.value?.user?.profile?.bio || '',
+  firstName: custProfileData.value?.user?.profile?.first_name || '',
+  lastName: custProfileData.value?.user?.profile?.last_name || '',
+  contact: custProfileData.value?.user?.profile?.contact || '',
+  location: custProfileData.value?.user?.profile?.location || '',
+  bio: custProfileData.value?.user?.profile?.bio || '',
 }
 
 const profileForm = reactive({ ...profileFormFields })
 
-watch([isProvProfileError, provProfileError], ([isErrorVal, errorVal]) => {
+watch([isCustProfileError, custProfileError], ([isErrorVal, errorVal]) => {
   if (isErrorVal && errorVal) {
+    console.log(errorVal)
     toast.error(errorVal.message || 'Failed to fetch profile!!')
   }
 })
 
-watch(provProfileData, (newData) => {
+watch(custProfileData, (newData) => {
   const profile = newData?.user?.profile
   profileForm.firstName = profile?.first_name || ''
   profileForm.lastName = profile?.last_name || ''
@@ -69,8 +70,8 @@ watch(isUpdateSuccess, (newVal) => {
       predicate: () => (query) => {
         return (
           Array.isArray(query.queryKey) &&
-          query.queryKey[0] === 'providers' &&
-          query.queryKey[1] === provId &&
+          query.queryKey[0] === 'customers' &&
+          query.queryKey[1] === custId &&
           query.queryKey[2] === 'profile'
         )
       },
@@ -81,29 +82,29 @@ watch(isUpdateSuccess, (newVal) => {
 
 watch(updateError, (newVal) => {
   if (newVal && isUpdateError.value) {
-    toast.error('profile update failed!!')
+    toast.error('profile update failed')
   }
 })
 
 const handleUpdateProfile = () => {
   const profileData = trimObjectStringValues({ ...profileForm })
-  updateProfileMutate({ provId, profileData })
+  updateProfileMutate({ custId, profileData })
 }
 </script>
 
 <template>
   <div class="container max-w-2xl mx-auto p-6 rounded-lg">
-    <LoadingState v-if="isProvProfilePending" />
-    <ErrorState v-else-if="isProvProfileError" />
+    <LoadingState v-if="isCustProfilePending" />
+    <ErrorState v-else-if="isCustProfileError" />
 
     <div v-else class="bg-white p-6 rounded-lg shadow-md mb-6">
       <div class="mb-5 flex items-center w-full justify-between">
         <div>
           <h2 class="text-2xl font-bold text-gray-800 mb-1">Profile</h2>
-          <h3 class="text-green-600">@{{ provProfileData?.user?.username }}</h3>
+          <h3 class="text-green-600">@{{ custProfileData?.user?.username }}</h3>
         </div>
         <div>
-          <h3>Joined on: {{ formatDate(provProfileData?.created_at) }}</h3>
+          <h3>Joined on: {{ formatDate(custProfileData?.created_at) }}</h3>
         </div>
       </div>
       <div>

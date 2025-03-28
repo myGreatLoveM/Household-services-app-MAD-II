@@ -19,3 +19,27 @@ export const ServiceStatus = Object.freeze({
   PENDING: 'pending',
   BLOCKED: 'blocked',
 })
+
+
+export const BookingStatus = Object.freeze({
+  PENDING : 'pending',
+  REJECT : 'rejected',
+  CONFIRM : 'confirmed',
+  CANCEL : 'cancelled',
+  ACTIVE : 'active',
+  COMPLETE : 'completed',
+  CLOSE : 'closed',
+})
+
+export const PaymentStatus = Object.freeze({
+  PENDING : 'pending',
+  PAID : 'paid',
+  CANCEL : 'cancelled'
+})
+
+
+export const PaymentMethods = Object.freeze({
+  CREDIT_CARD: 'credit_card',
+  PAYPAL: 'paypal',
+  UPI: 'upi',
+})

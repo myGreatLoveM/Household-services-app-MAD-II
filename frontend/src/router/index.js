@@ -21,6 +21,7 @@ import ServerErrorView from '@/views/error/ServerErrorView.vue'
 import UnauthorizedView from '@/views/error/UnauthorizedView.vue'
 
 import { UserRoles } from '@/constants.js'
+import PaymentView from '@/views/PaymentView.vue'
 
 const toast = useToast()
 
@@ -94,6 +95,12 @@ const router = createRouter({
         }
       },
       children: providerRoutes,
+    },
+    {
+      path: '/customers/:custId(\\d+)/payments/:paymentId(\\d+)',
+      name: 'booking-payment',
+      component: PaymentView,
+      meta: { requiresAuth: true, roles: [UserRoles.CUSTOMER] },
     },
     {
       path: '/providers/:provId(\\d+)/not-approved',

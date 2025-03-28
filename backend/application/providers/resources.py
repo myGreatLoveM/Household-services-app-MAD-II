@@ -1,4 +1,5 @@
 from flask import current_app, request
+from datetime import datetime
 from flask_jwt_extended import jwt_required
 from flask_restful import Resource
 from marshmallow import ValidationError
@@ -7,12 +8,21 @@ from application.extensions import db
 from .models import Service, Provider
 from application.admin.models import Category
 from application.core.models import User
-from application.customers.models import Booking, Review
+from application.customers.models import Booking, Payment, Review
 from .schemas import ProviderSchema, ServiceSchema, CreateServiceSchema
+from application.customers.schemas import BookingSchema, CustomerSchema
 from application.core.schemas import ProfileSchema, UserSchema
 from application.decorators import role_required
 from application.utils import error_response, success_response
-from application.enums import BookingStatusEnum, UserRoleEnum
+from application.enums import BookingStatusEnum, PaymentStatusEnum, UserRoleEnum
+
+
+class ProviderDashboardStatsAPI(Resource):
+
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def get(self, prov_id):
+    pass
 
 
 class ProviderServiceListAPI(Resource):
@@ -25,24 +35,24 @@ class ProviderServiceListAPI(Resource):
 
     try:
         paginated_data = (
-            db.session.query(
-                Service,
-                db.func.coalesce(
-                    db.func.count(
-                        db.case(
-                            (Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), Booking.id)
-                        )
-                    ), 0
-                ).label('active_bookings'),
-                db.func.coalesce(
-                    db.func.avg(Review.rating), 0
-                ).label('avg_rating')
-            )
-            .filter(Service.prov_id == prov_id)
-            .outerjoin(Booking, Service.bookings)
-            .outerjoin(Review, Booking.review)
-            .group_by(Service.id)
-            .paginate(page=page, per_page=per_page, error_out=False)
+          db.session.query(
+            Service,
+            db.func.coalesce(
+              db.func.count(
+                  db.case(
+                      (Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), Booking.id)
+                  )
+              ), 0
+            ).label('active_bookings'),
+            db.func.coalesce(
+                db.func.avg(Review.rating), 0
+            ).label('avg_rating')
+          )
+          .filter(Service.prov_id == prov_id)
+          .outerjoin(Booking, Service.bookings)
+          .outerjoin(Review, Booking.review)
+          .group_by(Service.id)
+          .paginate(page=page, per_page=per_page, error_out=False)
         )
         
         services = []
@@ -118,72 +128,12 @@ class ProviderServiceListAPI(Resource):
       return error_response('Something went wrong, please try again..')
 
 
-class ProviderProfileAPI(Resource):
-    
-  @jwt_required()
-  @role_required(UserRoleEnum.PROVIDER.value)
-  def get(self, prov_id):
-    try:
-      provider = (
-        db.session.query(
-          Provider
-        )
-        .options(
-          db.joinedload(Provider.user).joinedload(User.profile)
-        )
-        .filter(Provider.id == prov_id)
-        .first()
-      )
-
-      if not provider:
-        return error_response(f'Provider does not exist with id {prov_id}', status_code=404)
-
-      schema = ProviderSchema(exclude=['services'])
-
-      data = {'provider': schema.dump(provider)}
-      return success_response(data=data)
-      
-    except SQLAlchemyError as e:
-        return error_response('Something went wrong while creating new service!!')
-    except Exception as e:
-      print(e)
-      return error_response('Something went wrong, please try again..')
-
-  @jwt_required()
-  @role_required(UserRoleEnum.PROVIDER.value)
-  def put(self, prov_id):
-    try:
-      data = request.get_json()
-      first_name = data.get('firstName')
-      last_name = data.get('lastName')
-      contact = data.get('contact')
-      location = data.get('location')
-      bio = data.get('bio')
-
-      provider = Provider.query.filter_by(id=prov_id).first()
-
-      if not provider:
-        return error_response(f'Provider not exist with id {prov_id}', status_code=404)
-
-      profile = provider.user.profile
-      profile.first_name = first_name
-      profile.last_name = last_name
-      profile.contact = contact
-      profile.location = location
-      profile.bio = bio
-
-      db.session.commit()
-      return success_response(status_code=201)
-    except SQLAlchemyError as e:
-      db.session.rollback()
-      return error_response('Something went wrong while updating profile!!')
-    except Exception as e:
-      print(e)
-      db.session.rollback()
-      return error_response('Something went wrong, please try again..')
-
-
 class ProviderServiceMgmtAPI(Resource):
+
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def get(self, prov_id, service_id):
+    pass
    
   @jwt_required()
   @role_required(UserRoleEnum.PROVIDER.value)
@@ -192,12 +142,12 @@ class ProviderServiceMgmtAPI(Resource):
       provider = Provider.query.filter_by(id=prov_id).first()
 
       if not provider:
-        return error_response(f'Provider not exist with {prov_id}', status_code=404)
+        return error_response(f'Provider not exist with {prov_id}', status_code=400)
       
       service = provider.services.filter_by(id=service_id).first()
 
       if not service:
-        return error_response(f'service not exist with {service_id}', status_code=404)
+        return error_response(f'service not exist with {service_id}', status_code=400)
       
       if not service.is_approved:
         return error_response(f'Service is not approved', status_code=400)
@@ -225,12 +175,12 @@ class ProviderServiceMgmtAPI(Resource):
       provider = Provider.query.filter_by(id=prov_id).first()
 
       if not provider:
-        return error_response(f'Provider not exist with {prov_id}', status_code=404)
+        return error_response(f'Provider not exist with {prov_id}', status_code=400)
       
       service = provider.services.filter_by(id=service_id).first()
 
       if not service:
-        return error_response(f'service not exist with {service_id}', status_code=404)
+        return error_response(f'service not exist with {service_id}', status_code=400)
       
       if not service.is_approved:
         return error_response(f'Service is not approved', status_code=400)
@@ -251,7 +201,231 @@ class ProviderServiceMgmtAPI(Resource):
       return error_response('Something went wrong, please try again..')
 
 
+class ProviderBookingListAPI(Resource):
 
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def get(self, prov_id):
+    page = request.args.get('page', default=1, type=int)
+    per_page = current_app.config.get('ITEMS_PER_PAGE', 6)
+    status = request.args.get('status', default=BookingStatusEnum.ACTIVE.value)
+    
+    if status not in [BookingStatusEnum.ACTIVE.value, BookingStatusEnum.PENDING.value]:
+      return error_response('Invalid status for resource', status_code=400)
+
+    try:
+      query = (
+        db.session.query(
+          Booking,
+          Service,
+        )
+        .outerjoin(Service, Booking.service)
+        .outerjoin(Provider, Service.provider)
+      )
+
+      if status == BookingStatusEnum.ACTIVE.value:
+        query = query.filter(
+          Booking.status.notin_([BookingStatusEnum.REJECT.value, BookingStatusEnum.PENDING.value, BookingStatusEnum.CANCEL.value]), 
+          Provider.id==prov_id
+        )
+
+      elif status == BookingStatusEnum.PENDING.value:
+        query = query.filter(
+          Booking.status.in_([BookingStatusEnum.REJECT.value, BookingStatusEnum.PENDING.value, BookingStatusEnum.CANCEL.value]), 
+          Provider.id==prov_id
+        )
+
+      paginated = (
+        query
+        .order_by(Booking.id.desc())
+        .paginate(per_page=per_page, page=page, error_out=False)
+      )
+
+      bookings = []
+      booking_schema = BookingSchema(exclude=['review'])
+      service_schema = ServiceSchema()
+
+      for booking_obj, service_obj in paginated:
+        booking = booking_schema.dump(booking_obj)
+        booking['service'] = service_schema.dump(service_obj)
+        bookings.append(booking)
+
+      data={
+        'bookings': bookings,
+        'no_of_bookings': paginated.total,
+        'no_of_pages': paginated.pages,
+        'current_page': paginated.page,
+        'per_page': per_page
+      }
+
+      return success_response(data=data)
+    except SQLAlchemyError as e:
+      print(e)
+      return error_response('Something went wrong while fetching bookings')
+    except Exception as e:
+      print(e)
+      return error_response('Somthing went wrong, please try again..')
+
+
+class ProviderBookingMgmtAPI(Resource):
+
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def get(self, prov_id, booking_id):
+    pass
+
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def patch(self, prov_id, booking_id):
+    try:
+      booking, service = (
+        db.session.query(
+          Booking,
+          Service
+        )
+        .outerjoin(Service, Booking.service)
+        .outerjoin(Provider, Service.provider)
+        .filter(
+          Booking.id == booking_id,
+          Provider.id == prov_id
+        )
+        .first()
+      )
+
+      if not booking:
+        return error_response(f'Booking not exist with id {booking_id}!!', status_code=400)    
+      
+      if booking.status ==  BookingStatusEnum.PENDING.value:
+        booking.status = BookingStatusEnum.CONFIRM.value
+        booking.confirm_date = datetime.today()
+
+        booking_amount = service.price * service.time_required_hr
+
+        service_category = service.provider.category
+
+        pending_payment = Payment(
+          status = PaymentStatusEnum.PENDING.value,
+          cust_id = booking.cust_id,
+          amount = booking_amount,
+          commission_fee = round((service_category.commission_rate * booking_amount)/100),
+          platform_fee = round((service_category.booking_rate * booking_amount)/100),
+          transaction_fee = round((service_category.transaction_rate * booking_amount)/100)
+        )
+
+        booking.payment = pending_payment
+        db.session.commit()
+      
+      if booking.status == BookingStatusEnum.COMPLETE.value:
+        booking.is_closed = True
+        booking.closed_date = datetime.today()
+        db.session.commit()
+      
+      return success_response(status_code=204)
+    except SQLAlchemyError as e:
+      print(e)
+      db.session.rollback()
+      return error_response('Something went wrong while booking confirm!!')
+    except Exception as e:
+      print(e)
+      db.session.rollback()
+      return error_response('Something went wrong, please try again..')
+
+
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def delete(self, prov_id, booking_id):
+    try:
+      booking = (
+        db.session.query(
+          Booking
+        )
+        .outerjoin(Service, Booking.service)
+        .outerjoin(Provider, Service.provider)
+        .filter(
+          Booking.id == booking_id,
+          Provider.id == prov_id
+        )
+        .first()
+      )
+
+      if not booking:
+        return error_response(f'Booking not exist with id {booking_id}!!', status_code=400)    
+      
+      if booking.status ==  BookingStatusEnum.PENDING.value:
+        booking.status = BookingStatusEnum.REJECT.value
+        db.session.commit()
+      
+      return success_response(status_code=204)
+    except SQLAlchemyError as e:
+      return error_response('Something went wrong while booking reject!!')
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
+
+
+class ProviderProfileAPI(Resource):
+    
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def get(self, prov_id):
+    try:
+      provider = (
+        db.session.query(
+          Provider
+        )
+        .options(
+          db.joinedload(Provider.user).joinedload(User.profile)
+        )
+        .filter(Provider.id == prov_id)
+        .first()
+      )
+
+      if not provider:
+        return error_response(f'Provider does not exist with id {prov_id}', status_code=400)
+
+      schema = ProviderSchema(exclude=['services'])
+
+      data = {'provider': schema.dump(provider)}
+      return success_response(data=data)
+      
+    except SQLAlchemyError as e:
+      return error_response('Something went wrong while fetching profile!!')
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
+
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def put(self, prov_id):
+    try:
+      data = request.get_json()
+      first_name = data.get('firstName')
+      last_name = data.get('lastName')
+      contact = data.get('contact')
+      location = data.get('location')
+      bio = data.get('bio')
+
+      provider = Provider.query.filter_by(id=prov_id).first()
+
+      if not provider:
+        return error_response(f'Provider not exist with id {prov_id}', status_code=400)
+
+      profile = provider.user.profile
+      profile.first_name = first_name
+      profile.last_name = last_name
+      profile.contact = contact
+      profile.location = location
+      profile.bio = bio
+
+      db.session.commit()
+      return success_response(status_code=201)
+    except SQLAlchemyError as e:
+      db.session.rollback()
+      return error_response('Something went wrong while updating profile!!')
+    except Exception as e:
+      print(e)
+      db.session.rollback()
+      return error_response('Something went wrong, please try again..')
 
 
 

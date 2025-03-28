@@ -1,7 +1,7 @@
-import { useAuthStore } from "@/stores/authStore.js"
+import { useAuthStore } from '@/stores/authStore.js'
 
 
-export async function getAllServicesForProviderDashboard(provId, page) {
+export async function createBookingForCustomer(custId, serviceId, bookingData) {
   try {
     const authStore = useAuthStore()
 
@@ -9,53 +9,13 @@ export async function getAllServicesForProviderDashboard(provId, page) {
       throw new Error('Auth token required to fetch data!!')
     }
 
-    const params = new URLSearchParams({ page: parseInt(page) })
-
-    const resp = await fetch(`/api/v1/providers/${provId}/services?${params.toString()}`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${authStore.authToken}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    const respData = await resp.json()
-
-    if (resp.status == 401 && respData?.errors?.token_type) {
-      authStore.refreshExpiredAuthToken()
-      throw new Error('Auth Token Expired!!')
-    }
-
-    if (!resp.ok || !respData.success) {
-      throw new Error(respData.err_message || 'Failed to fetch services !!')
-    }
-
-    if (!respData.data && !respData.data.services) {
-      throw new Error('Response has missing required fields: services')
-    }
-
-    return respData.data
-  } catch (error) {
-    throw new Error(error.message || 'Something went wrong fetching services!!')
-  }
-}
-
-export async function createServiceForProvider(provId, serviceData) {
-
-  try {
-    const authStore = useAuthStore()
-
-    if (!authStore.authToken) {
-      throw new Error('Auth token required to fetch data!!')
-    }
-
-    const resp = await fetch(`/api/v1/providers/${provId}/services`, {
+    const resp = await fetch(`/api/v1/customers/${custId}/bookings`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${authStore.authToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ ...serviceData }),
+      body: JSON.stringify({ ...bookingData, serviceId }),
     })
 
     const respData = await resp.json()
@@ -66,85 +26,14 @@ export async function createServiceForProvider(provId, serviceData) {
     }
 
     if (!resp.ok || !respData.success) {
-      throw new Error(respData.err_message || 'Failed to create service !!')
+      throw new Error(respData.err_message || 'Failed to create bookings !!')
     }
-
   } catch (error) {
-    throw new Error(error.message || 'Something went wrong creating service!!')
+    throw new Error(error.message || 'Something went wrong creating bookings!!')
   }
 }
 
-export async function continueServiceForProviderDashboard(provId, { serviceId, serviceName }) {
-  try {
-    const authStore = useAuthStore()
-
-    if (!authStore.authToken) {
-      throw new Error('Auth token required to fetch data!!')
-    }
-
-    const resp = await fetch(`/api/v1/providers/${provId}/services/${serviceId}`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${authStore.authToken}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (resp.status == 401) {
-      const respData = await resp.json()
-      if (respData?.errors?.token_type) {
-        authStore.refreshExpiredAuthToken()
-        throw new Error('Auth Token Expired!!')
-      }
-    }
-
-    if (!resp.ok) {
-      throw new Error('Failed to update service status!!')
-    }
-
-    return { serviceId, serviceName }
-  } catch (error) {
-    throw new Error(error.message || 'Something went wrong updating service status!!')
-  }
-}
-
-export async function discontinueServiceForProviderDashboard(provId, {serviceId, serviceName}) {
-
-  try {
-    const authStore = useAuthStore()
-
-    if (!authStore.authToken) {
-      throw new Error('Auth token required to fetch data!!')
-    }
-
-    const resp = await fetch(`/api/v1/providers/${provId}/services/${serviceId}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${authStore.authToken}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-
-    if (resp.status == 401) {
-      const respData = await resp.json()
-      if (respData?.errors?.token_type) {
-        authStore.refreshExpiredAuthToken()
-        throw new Error('Auth Token Expired!!')
-      }
-    }
-
-    if (!resp.ok) {
-      throw new Error('Failed to discontinue service!!')
-    }
-
-    return { serviceId, serviceName }
-  } catch (error) {
-    throw new Error(error.message || 'Something went wrong discontinue service!!')
-  }
-}
-
-export async function getAllBookingsForProviderDashboard(provId, page, status) {
+export async function getAllBookingForCustomerDashboard(custId, page, status) {
   try {
     const authStore = useAuthStore()
 
@@ -154,7 +43,7 @@ export async function getAllBookingsForProviderDashboard(provId, page, status) {
 
     const params = new URLSearchParams({ page: parseInt(page), status })
 
-    const resp = await fetch(`/api/v1/providers/${provId}/bookings?${params.toString()}`, {
+    const resp = await fetch(`/api/v1/customers/${custId}/bookings?${params.toString()}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${authStore.authToken}`,
@@ -170,11 +59,11 @@ export async function getAllBookingsForProviderDashboard(provId, page, status) {
     }
 
     if (!resp.ok || !respData.success) {
-      throw new Error(respData.err_message || 'Failed to fetch services !!')
+      throw new Error(respData.err_message || 'Failed to fetch bookings !!')
     }
 
     if (!respData.data && !respData.data.bookings) {
-      throw new Error('Response has missing required fields: bookings')
+      throw new Error('Response has missing required fields: services')
     }
 
     return respData.data
@@ -183,7 +72,7 @@ export async function getAllBookingsForProviderDashboard(provId, page, status) {
   }
 }
 
-export async function confirmBookingForProviderDashboard(provId, bookingId) {
+export async function getPaymentDetailOfBookingForCustomerDashboard(custId, paymentId) {
   try {
     const authStore = useAuthStore()
 
@@ -191,12 +80,50 @@ export async function confirmBookingForProviderDashboard(provId, bookingId) {
       throw new Error('Auth token required to fetch data!!')
     }
 
-    const resp = await fetch(`/api/v1/providers/${provId}/bookings/${bookingId}`, {
+    const resp = await fetch(`/api/v1/customers/${custId}/payments/${paymentId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to fetch payment detail!!')
+    }
+
+    if (!respData.data && !respData.data.payment) {
+      throw new Error('Response has missing required fields: payment')
+    }
+
+    return respData.data
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong fetching payment detail!!')
+  }
+}
+
+export async function confirmPaymentOfBookingForProviderDashboard(custId, paymentId, paymentData) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/customers/${custId}/payments/${paymentId}`, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${authStore.authToken}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({...paymentData}),
     })
 
     if (resp.status == 401) {
@@ -208,16 +135,17 @@ export async function confirmBookingForProviderDashboard(provId, bookingId) {
     }
 
     if (!resp.ok) {
-      throw new Error('Failed to confirm booking!!')
+      throw new Error('Failed to confirm payment!!')
     }
 
-    return { bookingId }
+    return { paymentId }
   } catch (error) {
-    throw new Error(error.message || 'Something went wrong during booking confirm!!')
+    console.log(error);
+    throw new Error(error.message || 'Something went wrong during payment confirm!!')
   }
 }
 
-export async function closeBookingForProviderDashboard(provId, bookingId) {
+export async function cancelPaymentOfBookingForProviderDashboard(custId, paymentId) {
   try {
     const authStore = useAuthStore()
 
@@ -225,41 +153,7 @@ export async function closeBookingForProviderDashboard(provId, bookingId) {
       throw new Error('Auth token required to fetch data!!')
     }
 
-    const resp = await fetch(`/api/v1/providers/${provId}/bookings/${bookingId}`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${authStore.authToken}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (resp.status == 401) {
-      const respData = await resp.json()
-      if (respData?.errors?.token_type) {
-        authStore.refreshExpiredAuthToken()
-        throw new Error('Auth Token Expired!!')
-      }
-    }
-
-    if (!resp.ok) {
-      throw new Error('Failed to close booking!!')
-    }
-
-    return { bookingId }
-  } catch (error) {
-    throw new Error(error.message || 'Something went wrong during booking close!!')
-  }
-}
-
-export async function rejectBookingForProviderDashboard(provId, bookingId) {
-  try {
-    const authStore = useAuthStore()
-
-    if (!authStore.authToken) {
-      throw new Error('Auth token required to fetch data!!')
-    }
-
-    const resp = await fetch(`/api/v1/providers/${provId}/bookings/${bookingId}`, {
+    const resp = await fetch(`/api/v1/customers/${custId}/payments/${paymentId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${authStore.authToken}`,
@@ -276,16 +170,17 @@ export async function rejectBookingForProviderDashboard(provId, bookingId) {
     }
 
     if (!resp.ok) {
-      throw new Error('Failed to reject booking!!')
+      throw new Error('Failed to cancel payment!!')
     }
 
-    return { }
+    return { paymentId }
   } catch (error) {
-    throw new Error(error.message || 'Something went wrong during booking reject!!')
+    throw new Error(error.message || 'Something went wrong during payment cancel!!')
   }
 }
 
-export async function updateProfileForProviderDashboard(provId, profileData) {
+
+export async function completeBookingForProviderDashboard(custId, bookingId) {
   try {
     const authStore = useAuthStore()
 
@@ -293,7 +188,41 @@ export async function updateProfileForProviderDashboard(provId, profileData) {
       throw new Error('Auth token required to fetch data!!')
     }
 
-    const resp = await fetch(`/api/v1/providers/${provId}/profile`, {
+    const resp = await fetch(`/api/v1/customers/${custId}/bookings/${bookingId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (resp.status == 401) {
+      const respData = await resp.json()
+      if (respData?.errors?.token_type) {
+        authStore.refreshExpiredAuthToken()
+        throw new Error('Auth Token Expired!!')
+      }
+    }
+
+    if (!resp.ok) {
+      throw new Error('Failed to complete booking!!')
+    }
+
+    return { bookingId }
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong during booking complete!!')
+  }
+}
+
+export async function updateProfileForCustomerDashboard(custId, profileData) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/customers/${custId}/profile`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${authStore.authToken}`,
@@ -312,14 +241,12 @@ export async function updateProfileForProviderDashboard(provId, profileData) {
     if (!resp.ok || !respData.success) {
       throw new Error(respData.err_message || 'Failed to update profile!!')
     }
-
   } catch (error) {
     throw new Error(error.message || 'Something went wrong updating profile!!')
   }
 }
 
-export async function getProfileForProviderDashboard(provId) {
-
+export async function getProfileForCustomerDashboard(custId) {
   try {
     const authStore = useAuthStore()
 
@@ -327,7 +254,7 @@ export async function getProfileForProviderDashboard(provId) {
       throw new Error('Auth token required to fetch data!!')
     }
 
-    const resp = await fetch(`/api/v1/providers/${provId}/profile`, {
+    const resp = await fetch(`/api/v1/customers/${custId}/profile`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${authStore.authToken}`,
@@ -346,11 +273,11 @@ export async function getProfileForProviderDashboard(provId) {
       throw new Error(respData.err_message || 'Failed to get profile !!')
     }
 
-     if (!respData.data && !respData.data.provider) {
-       throw new Error('Response has missing required fields: provider')
-     }
+    if (!respData.data && !respData.data.customer) {
+      throw new Error('Response has missing required fields: Customer')
+    }
 
-    return respData.data.provider
+    return respData.data.customer
   } catch (error) {
     throw new Error(error.message || 'Something went wrong fetching profile!!')
   }

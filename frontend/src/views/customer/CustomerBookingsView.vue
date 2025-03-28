@@ -3,13 +3,14 @@ import { onMounted, ref, watch } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
+import { useAuthUserStore } from '@/stores/authUserStore'
+import { getAllBookingForCustomerDashboard, completeBookingForProviderDashboard } from '@/services/customerService.js'
 import PaginationBar from '@/components/PaginationBar.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import { formatDate } from '@/utils.js'
-import { getAllBookingsForProviderDashboard, closeBookingForProviderDashboard } from '@/services/providerService'
-import { useAuthUserStore } from '@/stores/authUserStore'
-import { BookingStatus, PaymentStatus } from '@/constants'
+import { BookingStatus } from '@/constants.js'
+
 
 const queryClient = useQueryClient()
 const authUserStore = useAuthUserStore()
@@ -18,7 +19,7 @@ const route = useRoute()
 
 const isEnabled = ref(false)
 const page = ref(route.query.page ? parseInt(route.query.page) : 1)
-const provId = parseInt(authUserStore.provider.id)
+const custId = parseInt(authUserStore.customer.id)
 
 const {
   data: bookingData,
@@ -26,55 +27,61 @@ const {
   refetch: refetchBookings,
   isError: isBookingDataError,
   error: bookingDataError,
+  isStale,
+  isFetched
 } = useQuery({
-  queryKey: () => ['providers', provId, 'bookings', page.value, BookingStatus.ACTIVE],
-  queryFn: () => getAllBookingsForProviderDashboard(provId, page.value, BookingStatus.ACTIVE),
+  queryKey: () => ['customers', custId, 'bookings', page.value, BookingStatus.ACTIVE],
+  queryFn: () => getAllBookingForCustomerDashboard(custId, page.value, BookingStatus.ACTIVE),
   enabled: isEnabled.value,
   keepPreviousData: true,
 })
 
 const {
-  data: closeBookingData,
-  isPending: isClosePending,
-  isSuccess: isCloseSuccess,
-  mutate: closeBookingMutate,
-  error: closeError,
-  isError: isCloseError,
+  data: completeBookingData,
+  isPending: isCompletePending,
+  isSuccess: isCompleteSuccess,
+  mutate: completeBookingMutate,
+  error: completeError,
+  isError: isCompleteError,
 } = useMutation({
   mutationFn: (bookingId) =>
-    closeBookingForProviderDashboard(provId, bookingId),
+    completeBookingForProviderDashboard(custId, bookingId),
 })
 
+
 onMounted(async () => {
+  console.log(isStale.value, isFetched.value);
+
   isEnabled.value = true
   refetchBookings()
 })
 
 watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
   if (isErrorVal && errorVal) {
-    toast.error(errorVal.message || 'Failed to fetch booking data!!')
+    toast.error(errorVal.message || 'Failed to fetch booking data')
   }
 })
 
-watch(closeError, (errorVal) => {
-  if (isCloseError.value && errorVal) {
-    toast.error(`Failed to close booking ${closeBookingData.value.bookingId}!!`)
+
+watch(completeError, (errorVal) => {
+  if (isCompleteError.value && errorVal) {
+    toast.error(`Failed to complete booking ${completeBookingData.value.bookingId}!!`)
   }
 })
 
-watch(isCloseSuccess, (isCloseSuccessVal) => {
-  if (isCloseSuccessVal) {
+
+watch(isCompleteSuccess, (isCompleteSuccessVal) => {
+  if (isCompleteSuccessVal) {
     queryClient.invalidateQueries({
       predicate: () => (query) => {
         return (
           Array.isArray(query.queryKey) &&
           query.queryKey[0] === 'providers' &&
-          query.queryKey[2] === 'bookings' &&
-          query.queryKey[4] === BookingStatus.ACTIVE
+          query.queryKey[2] === 'services'
         )
       },
     })
-    toast.success(`Bookig with ID ${closeBookingData.value.bookingId} close..`)
+    toast.success(`Booking with ID ${completeBookingData.value.bookingId} complete..`)
     refetchBookings()
   }
 })
@@ -87,9 +94,10 @@ watch(
   },
 )
 
-const handleCloseBooking = async (bookingId) => {
-  closeBookingMutate(bookingId)
+const handleCompleteBooking = async (bookingId) => {
+  completeBookingMutate(bookingId)
 }
+
 </script>
 
 <template>
@@ -99,15 +107,15 @@ const handleCloseBooking = async (bookingId) => {
     >
       <div>
         <h2 class="text-lg font-semibold">All Bookings</h2>
-        <p class="mt-1 text-sm text-gray-700">This is a list of all active bookings.</p>
+        <p class="mt-1 text-sm text-gray-700">This is a list of all active or completed bookings.</p>
       </div>
 
       <div class="flex items-center gap-10">
-        <RouterLink :to="{ name: 'provider-pending-bookings', params: { provId } }">
+        <RouterLink :to="{ name: 'customer-pending-bookings', params: { custId } }">
           <button
             class="rounded-md bg-zinc-600 hover:bg-zinc-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
           >
-            New Bookings
+            Pending Bookings
           </button>
         </RouterLink>
       </div>
@@ -117,9 +125,9 @@ const handleCloseBooking = async (bookingId) => {
     <ErrorState v-else-if="isBookingDataError" />
     <div
       class="text-xl font-medium w-full text-center mt-10"
-      v-else-if="bookingData?.bookings.length === 0"
+      v-else-if="bookingData?.bookings?.length === 0"
     >
-      No active bookings..
+      No active or completed bookings..
     </div>
 
     <div v-else class="relative overflow-x-auto shadow-md sm:rounded-lg mt-10">
@@ -133,16 +141,16 @@ const handleCloseBooking = async (bookingId) => {
               Service
             </th>
             <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-              Customer
+              Category
+            </th>
+            <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+              Provider
             </th>
             <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
               Status
             </th>
             <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-              Payment Status
-            </th>
-            <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-              Booked On
+              Booking Date
             </th>
             <th scope="col" class="px-4 py-2">Action</th>
           </tr>
@@ -158,57 +166,28 @@ const handleCloseBooking = async (bookingId) => {
             <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
               {{ booking.service.name.toUpperCase() }}
             </td>
+            <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+              {{ booking.service.provider.category.name.toUpperCase() }}
+            </td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
               {{
-                booking.customer.user.profile.first_name +
+                booking.service.provider.user.profile.first_name +
                 ' ' +
-                booking.customer.user.profile.last_name
+                booking.service.provider.user.profile.last_name
               }}
             </td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
               <span
-                v-if="booking.status === BookingStatus.CONFIRM"
-                class="whitespace-nowrap rounded-full border border-purple-500 px-2.5 py-0.5 text-sm text-purple-700 bg-purple-100"
-              >
-                confirmed
-              </span>
-              <span
-                v-else-if="booking.status === BookingStatus.ACTIVE"
+                v-if="booking.status === BookingStatus.ACTIVE"
                 class="whitespace-nowrap rounded-full border border-green-500 px-2.5 py-0.5 text-sm text-green-700 bg-green-100"
               >
                 active
               </span>
               <span
-                v-else-if="(booking.status === BookingStatus.COMPLETE) && !booking.is_closed"
+                v-if="booking.status === BookingStatus.COMPLETE"
                 class="whitespace-nowrap rounded-full border border-pink-500 px-2.5 py-0.5 text-sm text-pink-700 bg-pink-100"
               >
                 completed
-              </span>
-              <span
-                v-else-if="booking.is_closed"
-                class="whitespace-nowrap rounded-full border border-zinc-500 px-2.5 py-0.5 text-sm text-zinc-700 bg-zinc-100"
-              >
-                closed
-              </span>
-            </td>
-            <td class="whitespace-nowrap px-4 py-2 text-gray-700">
-              <span
-                v-if="booking.payment.status === PaymentStatus.PENDING"
-                class="whitespace-nowrap rounded-full border border-yellow-500 px-2.5 py-0.5 text-sm text-yellow-700"
-              >
-                pending
-              </span>
-              <span
-                v-else-if="booking.payment.status === PaymentStatus.PAID"
-                class="whitespace-nowrap rounded-full border border-green-500 px-2.5 py-0.5 text-sm text-green-700"
-              >
-                paid
-              </span>
-              <span
-                v-else-if="booking.payment.status === PaymentStatus.CANCEL"
-                class="whitespace-nowrap rounded-full border border-red-500 px-2.5 py-0.5 text-sm text-red-700"
-              >
-                cancelled
               </span>
             </td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
@@ -216,18 +195,20 @@ const handleCloseBooking = async (bookingId) => {
             </td>
             <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
               <button
-                class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700"
+                :disabled="isCompletePending"
+                :class="isCompletePending ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'"
+                class="inline-block rounded px-4 py-2 text-xs font-medium text-white"
               >
                 View
               </button>
               <button
-                v-if="(booking.status === BookingStatus.COMPLETE) && !booking.is_closed"
-                @click="() => handleCloseBooking(booking.id)"
-                :disabled="isClosePending"
-                :class="isClosePending ? 'bg-zinc-400' : 'bg-zinc-600 hover:bg-zinc-700'"
+                v-if="booking.status === BookingStatus.ACTIVE"
+                @click="() => handleCompleteBooking(booking.id)"
+                :disabled="isCompletePending"
+                :class="isCompletePending ? 'bg-pink-400' : 'bg-pink-600 hover:bg-pink-700'"
                 class="inline-block rounded  px-4 py-2 text-xs font-medium text-white "
               >
-                Close
+                Complete
               </button>
             </td>
           </tr>
@@ -236,6 +217,7 @@ const handleCloseBooking = async (bookingId) => {
     </div>
 
     <PaginationBar
+      v-show="!isCompletePending"
       v-if="!isBookingDataPending && !isBookingDataError"
       :total="bookingData?.no_of_bookings"
       :pages="bookingData?.no_of_pages"

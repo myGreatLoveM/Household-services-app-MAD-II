@@ -1,10 +1,13 @@
 <script setup>
-import { ref } from 'vue';
+import { reactive, watch, computed } from 'vue';
 import { useToast } from 'vue-toastification';
 import { useRoute } from 'vue-router';
 import { useAuthUserStore } from '@/stores/authUserStore';
 import InputField from '@/components/InputField.vue';
 import ModalCloseButton from '@/components/ModalCloseButton.vue';
+import { validateBookingForm } from '@/validations/bookingFormValidation';
+import { useMutation } from '@tanstack/vue-query';
+import { createBookingForCustomer } from '@/services/customerService';
 
 const props = defineProps({
   closeBookingModal: {type: Function}
@@ -18,14 +21,52 @@ const serviceId = route.params.serviceId
 const custId = parseInt(authUserStore.customer.id)
 
 
+const {isPending, isError, isSuccess, error, mutate} = useMutation({
+  mutationFn: (bookingData) => createBookingForCustomer(custId, serviceId, bookingData)
+})
+
 const bookingFormFields = {
   bookDate: '',
   fullfillmentDate: '',
   remark: ''
 }
 
-const serviceForm = reactive({ ...serviceFormFields })
-const serviceFormErrors = reactive({ ...serviceFormFields })
+const bookingForm = reactive({ ...bookingFormFields })
+const bookingFormErrors = reactive({ ...bookingFormFields })
+
+watch(
+  () => ({...bookingForm}), 
+  () => {
+    validateBookingForm(bookingForm, bookingFormErrors)
+  },
+  { deep: true },
+)
+
+watch([isError, error], ([isErrorVal, errorVal]) => {
+  if (isErrorVal && errorVal) {
+    toast.error(errorVal.message || "Failed to created booking!!");
+  }
+});
+
+watch(isSuccess, () => {
+  toast.success('New Booking created successfully')
+  props.closeBookingModal()
+})
+
+const isSubmitButtonDisabled = computed(() => {
+  return Object.values(bookingFormErrors).some((err) => err !== '')
+})
+
+const handleSubmit = () => {
+
+  const isBookingFormInvalid = validateBookingForm(bookingForm, bookingFormErrors)
+
+  if (isBookingFormInvalid || isSubmitButtonDisabled.value) {
+    return toast.error('Booking Form is invalid!!!')
+  }
+
+  mutate({...bookingForm})
+}
 </script>
 
 <template>
@@ -44,37 +85,41 @@ const serviceFormErrors = reactive({ ...serviceFormFields })
           <label for="start-date" class="text-white font-medium">Booking Date:</label>
           <input
             type="date"
-            id="start-date"
-            name="start-date"
+            name="bookDate"
+            v-model="bookingForm.bookDate"
             class="border rounded-lg px-4 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
+          <p>{{ bookingFormErrors.bookDate }}</p>
         </div>
 
         <div class="grid gap-4 mb-6 grid-cols-1 md:grid-cols-2 items-center">
           <label for="end-date" class="text-white font-medium">Fullfillment Date:</label>
           <input
             type="date"
-            id="end-date"
-            name="end-date"
+            name="fullfillmentDate"
+            v-model="bookingForm.fullfillmentDate"
             class="border rounded-lg px-4 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
+          <p class="text-sm">{{ bookingFormErrors.fullfillmentDate }}</p>
         </div>
 
         <InputField
-          id="name"
-          label="Name"
+          id="remark"
+          label="Remark"
           type="text"
-          placeholder="Enter name for service"
-          v-model="serviceForm.name"
-          :error="serviceFormErrors.name"
+          placeholder="Extra details to share about booking"
+          v-model="bookingForm.remark"
           classForLabel="block mb-2 text-sm font-medium text-white"
           classForInputField="bg-white border border-gray-300 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
         />
 
         <button
-          class="bg-blue-700 text-white font-medium rounded-lg text-sm px-5 py-2.5 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          @click="handleSubmit"
+          @disabled="isSubmitButtonDisabled"
+          :class="isSubmitButtonDisabled || isPending ? 'bg-blue-500  cursor-none' : 'bg-blue-700 hover:bg-blue-800'"
+          class= "text-white font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-5"
         >
-          Book
+          {{ isPending ? 'Booking' : 'Book' }}
         </button>
       </div>
 

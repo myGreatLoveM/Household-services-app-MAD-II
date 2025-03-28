@@ -2,16 +2,18 @@
 import { onMounted, ref, watch } from "vue";
 import { useQuery } from "@tanstack/vue-query";
 import { useToast } from "vue-toastification";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { getActiveService } from "@/services/coreServices"; 
 import BookingModal from "@/modals/BookingModal.vue";
 import LoadingState from "@/components/LoadingState.vue";
 import ErrorState from "@/components/ErrorState.vue";
-import { formatDate } from "@/utils.js";
+import { useAuthUserStore } from '@/stores/authUserStore';
 
 
+const authUserStore = useAuthUserStore()
 const toast = useToast();
 const route = useRoute();
+const router = useRouter()
 
 const isEnabled = ref(false);
 const isBookingModelOpen = ref(false);
@@ -39,8 +41,12 @@ watch([isError, error], ([isErrorVal, errorVal]) => {
 });
 
 const openBookingModal = () => {
-  isBookingModelOpen.value = true;
-  emit('booking-modal-open')
+  if (authUserStore.isCustomer && !authUserStore.isCustomerBlocked) {
+    isBookingModelOpen.value = true;
+    emit('booking-modal-open')
+  } else {
+    router.push({ name: 'login' })
+  }
 };
 
 const closeBookingModal = () => {
