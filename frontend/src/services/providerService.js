@@ -427,10 +427,17 @@ export async function exportClosedBookingData(provId) {
     }
 
     const taskId = respData.data.id
+    let pollingCount = 0
 
     const intervalId = setInterval(async () => {
-
       try {
+
+        console.log('polling count', pollingCount);
+        if (pollingCount > 20) {
+          throw new Error('Export failed, server not responding!!')
+        }
+        pollingCount = pollingCount + 1
+
         const taskResp = await fetch(`/api/v1/providers/${provId}/bookings/csv-export/${taskId}`, {
           method: 'GET',
           headers: {
@@ -438,7 +445,7 @@ export async function exportClosedBookingData(provId) {
             'Content-Type': 'application/json',
           },
         })
-
+        
         const taskData = await taskResp.json()
 
         if (!taskResp.ok) {

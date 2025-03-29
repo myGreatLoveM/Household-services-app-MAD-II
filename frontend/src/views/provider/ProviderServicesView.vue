@@ -3,7 +3,7 @@ import { onMounted, ref, watch, computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
-import ServiceListModal from '@/modals/ServiceListModal.vue'
+import ServiceListModal from '@/modals/ServiceModal.vue'
 import PaginationBar from '@/components/PaginationBar.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
@@ -200,9 +200,6 @@ const emit = defineEmits(['serviceModalOpen', 'serviceModalClose'])
               Total Bookings
             </th>
             <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-              Lifetime Earning
-            </th>
-            <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
               Listed On
             </th>
             <th scope="col" class="px-4 py-2">Action</th>
@@ -248,18 +245,19 @@ const emit = defineEmits(['serviceModalOpen', 'serviceModalClose'])
             </td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ service.avg_rating }}</td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ service.active_bookings }}</td>
-            <td class="whitespace-nowrap px-4 py-2 text-gray-700">10,000 ₹</td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
               {{ formatDate(service.created_at) }}
             </td>
             <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
-              <button
-                :disabled="isActionButtonsDisabled"
-                :class="isActionButtonsDisabled ? 'bg-indigo-300 cursor-none': 'bg-indigo-600 hover:bg-indigo-700'"
-                class="inline-block rounded  px-4 py-2 text-xs font-medium text-white "
-              >
-                View
-              </button>
+              <RouterLink :to="{ name: 'provider-single-service', params: { serviceId: service.id } }">
+                <button
+                  :disabled="isActionButtonsDisabled"
+                  :class="isActionButtonsDisabled ? 'bg-indigo-300 cursor-none': 'bg-indigo-600 hover:bg-indigo-700'"
+                  class="inline-block rounded  px-4 py-2 text-xs font-medium text-white "
+                >
+                  View
+                </button>
+              </RouterLink>
               <button
                 v-if="service.is_approved && !service.is_blocked && service.is_active"
                 :disabled="isActionButtonsDisabled"

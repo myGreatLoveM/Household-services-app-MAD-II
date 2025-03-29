@@ -100,7 +100,7 @@ const handleUpdateProfile = () => {
       <div class="mb-5 flex items-center w-full justify-between">
         <div>
           <h2 class="text-2xl font-bold text-gray-800 mb-1">Profile</h2>
-          <h3 class="text-green-600">@{{ provProfileData?.user?.username }}</h3>
+          <h3 class="text-green-600">{{ provProfileData.id }}@{{ provProfileData?.user?.username }}</h3>
         </div>
         <div>
           <h3>Joined on: {{ formatDate(provProfileData?.created_at) }}</h3>

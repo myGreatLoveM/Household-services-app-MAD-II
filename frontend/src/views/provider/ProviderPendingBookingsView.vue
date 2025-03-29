@@ -205,7 +205,7 @@ const handleConfirmBooking = async (bookingId) => {
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
                <span
                 v-if="booking.status === BookingStatus.PENDING"
-                class="whitespace-nowrap rounded-full border border-red-500 px-2.5 py-0.5 text-sm text-red-700"
+                class="whitespace-nowrap rounded-full border border-yellow-500 px-2.5 py-0.5 text-sm text-yellow-700"
               >
                 pending
               </span>
@@ -217,7 +217,7 @@ const handleConfirmBooking = async (bookingId) => {
               </span>
               <span
                 v-else-if="booking.status === BookingStatus.CANCEL"
-                class="whitespace-nowrap rounded-full border border-red-500 px-2.5 py-0.5 text-sm text-red-700"
+                class="whitespace-nowrap rounded-full border border-violet-500 px-2.5 py-0.5 text-sm text-violet-700"
               >
                 cancelled
               </span>

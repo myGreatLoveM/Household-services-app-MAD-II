@@ -6,8 +6,7 @@ from flask_security import Security
 from flask_cors import CORS 
 from flask_jwt_extended import JWTManager
 from flask_caching import Cache
-from flask_mail import Mail 
-from flask_sse import sse
+
 
 from application.utils import error_response
 
@@ -25,7 +24,6 @@ ma = Marshmallow()
 
 cache = Cache()
 
-mail = Mail()
 
 
 @jwt.expired_token_loader

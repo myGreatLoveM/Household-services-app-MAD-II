@@ -10,11 +10,6 @@ sudo systemctl start redis
 sudo systemctl stop redis
 sudo systemctl status redis
 
-app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/1'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/2'
-app.config['CACHE_REDIS_URL'] = 'redis://localhost:6379/3'
-app.config['CACHE_TYPE'] = 'RedisCache'
-app.config['CACHE_DEFAULT_TIMEOUT'] = 100
 
 
 # celery[redis]

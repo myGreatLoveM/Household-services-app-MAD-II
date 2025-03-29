@@ -52,3 +52,19 @@ export function generateRandomNumberString(length) {
   }
   return randomNumber
 }
+
+export function isToday(bookingDate) {
+  const today = new Date()
+
+  // Extract year, month, and date for both today and bookingDate
+  const bookingYear = bookingDate.getFullYear()
+  const bookingMonth = bookingDate.getMonth()
+  const bookingDay = bookingDate.getDate()
+
+  const todayYear = today.getFullYear()
+  const todayMonth = today.getMonth()
+  const todayDay = today.getDate()
+
+  // Check if year, month, and day match
+  return bookingYear === todayYear && bookingMonth === todayMonth && bookingDay === todayDay
+}

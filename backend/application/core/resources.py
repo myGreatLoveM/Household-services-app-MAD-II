@@ -17,7 +17,7 @@ from application.utils import make_cache_key
 
 class CategoryExploreListAPI(Resource):
 
-    @cache.cached(timeout=2000, make_cache_key=make_cache_key)
+    @cache.cached(timeout=300, key_prefix=make_cache_key)
     def get(self):
         try:
             page = request.args.get('page', default=1, type=int)
@@ -89,7 +89,7 @@ class CategoryExploreListAPI(Resource):
 
 class CategoryExploreAPI(Resource):
 
-    @cache.cached(timeout=3000, make_cache_key=make_cache_key)
+    @cache.cached(timeout=300, key_prefix=make_cache_key)
     def get(self, cat_id):
         try:
             category_obj = Category.query.filter(Category.id.is_(cat_id)).first()
@@ -108,7 +108,7 @@ class CategoryExploreAPI(Resource):
 
 class ActiveServiceListAPI(Resource):
 
-    @cache.cached(timeout=3000, make_cache_key=make_cache_key)
+    @cache.cached(timeout=3000, key_prefix=make_cache_key)
     def get(self):
         page = request.args.get('page', 1, type=int)
         per_page = current_app.config.get('ITEMS_PER_PAGE', 10)
@@ -172,7 +172,7 @@ class ActiveServiceListAPI(Resource):
 
 class ActiveServiceAPI(Resource):
 
-    @cache.cached(timeout=1000, make_cache_key=make_cache_key)
+    @cache.cached(timeout=1000, key_prefix=make_cache_key)
     def get(self, service_id):
         print('slnblkfnb')
         try:

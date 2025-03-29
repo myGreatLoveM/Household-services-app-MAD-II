@@ -204,7 +204,6 @@ class AdminCategoryAPI(Resource):
             category = Category.query.filter_by(id=cat_id).first()
             
             if not category:
-                
                 return error_response(f'Category not exists with id {cat_id}', status_code=400)
 
             data = request.get_json()
@@ -222,7 +221,7 @@ class AdminCategoryAPI(Resource):
 
             is_cat_exist_with_name = Category.query.filter_by(name=name).first()
 
-            if is_cat_exist_with_name:
+            if is_cat_exist_with_name and is_cat_exist_with_name != category.name :
                 return error_response('Category with name already exists!!', status_code=409)
 
             category.name = name 

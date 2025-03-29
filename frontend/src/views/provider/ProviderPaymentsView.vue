@@ -59,6 +59,12 @@ watch(
 
     <LoadingState v-if="isPending" />
     <ErrorState v-else-if="isError" />
+     <div
+      class="text-xl font-medium w-full text-center mt-10"
+      v-else-if="data?.payments.length === 0"
+    >
+      No Payments ...
+    </div>
 
     <div v-else class="relative overflow-x-auto shadow-md sm:rounded-lg mt-10">
       <table class="min-w-full divide-gray-200 bg-white text-sm">

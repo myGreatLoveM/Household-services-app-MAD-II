@@ -89,7 +89,7 @@ const handleSubmit = () => {
             v-model="bookingForm.bookDate"
             class="border rounded-lg px-4 py-2 text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-          <p>{{ bookingFormErrors.bookDate }}</p>
+          <p class="text-sm">{{ bookingFormErrors.bookDate }}</p>
         </div>
 
         <div class="grid gap-4 mb-6 grid-cols-1 md:grid-cols-2 items-center">

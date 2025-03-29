@@ -1,3 +1,4 @@
+import { isToday } from "@/utils"
 
 
 export const validateBookingForm = (bookingForm, bookingFormErrors) => {
@@ -11,7 +12,7 @@ export const validateBookingForm = (bookingForm, bookingFormErrors) => {
 
   if (!bookingForm.bookDate) {
     bookingFormErrors.bookDate = 'Book date is required'
-  } else if (bookDate < today) {
+  } else if (bookDate < today && !isToday(bookDate)) {
     bookingFormErrors.bookDate = 'Select valid book date'
   } else {
     bookingFormErrors.bookDate = ''
