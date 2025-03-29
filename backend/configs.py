@@ -61,14 +61,3 @@ class TestingConfig(Config, CeleryConfig):
     FLASK_ENV = 'testing'
     TESTING = True
 
-
-
-# app.config['JWT_SECRET_KEY'] = 'jwtsecretkey'  # JWT secret key
-# app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(hours=1)  # Token expiry
-# app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=7)  # Refresh token expiry
-# app.config['JWT_BLACKLIST_ENABLED'] = True  # Enable blacklist
-
-
-
-# app.config['SECURITY_REGISTERABLE'] = True
-# app.config['SECURITY_SEND_REGISTER_EMAIL'] = False

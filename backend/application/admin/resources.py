@@ -13,6 +13,7 @@ from application.providers.models import Provider, Service
 from .schemas import CategorySchema, CreateCategorySchema
 from .parsers import admin_provider_query_args_parser, admin_service_query_args_parser
 from application.providers.schemas import ProviderSchema, ServiceSchema
+from application.customers.schemas import PaymentSchema
 
 from application.enums import BookingStatusEnum, ProviderServiceStatusEnum, UserRoleEnum, UserStatusEnum, PaymentStatusEnum
 from application.utils import error_response, success_response
@@ -559,6 +560,38 @@ class AdminCustomerMgmtAPI(Resource):
             return success_response(status_code=204)
         except SQLAlchemyError as e:
             return error_response('Something went wrong while updating status of customer!!')
+        except Exception as e:
+            print(e)
+            return error_response('Somthing went wrong, please try again..')
+
+
+
+class AdminPaymentsListAPI(Resource):
+
+    @jwt_required()
+    @role_required(UserRoleEnum.ADMIN.value)
+    def get(self):
+        try:
+            page = request.args.get('page', default=1, type=int)
+            per_page = current_app.config.get('ITEMS_PER_PAGE', 6)
+
+            paginated = Payment.query.order_by(Payment.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+            schema = PaymentSchema(many=True)
+
+            payments = schema.dump(paginated.items)
+
+            data = {
+                'no_of_payments': paginated.total,
+                'no_of_pages': paginated.pages,
+                'current_page': paginated.page,
+                'per_page': per_page,
+                'payments': payments
+            }
+
+            return success_response(data=data)
+        except SQLAlchemyError as e:
+            return error_response('Something went wrong while fetching payments')
         except Exception as e:
             print(e)
             return error_response('Somthing went wrong, please try again..')

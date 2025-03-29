@@ -10,5 +10,5 @@ fi
 
 
 . .venv/bin/activate
-celery -A main.celery beat --max-interval 1 -l info
+celery -A main.celery beat --max-interval 1 -l INFO
 deactivate

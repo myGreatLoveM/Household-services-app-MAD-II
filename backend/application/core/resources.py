@@ -14,7 +14,7 @@ from application.enums import BookingStatusEnum
 from application.utils import make_cache_key
 
 
-
+   
 class CategoryExploreListAPI(Resource):
 
     @cache.cached(timeout=300, key_prefix=make_cache_key)
@@ -84,7 +84,7 @@ class CategoryExploreListAPI(Resource):
         except SQLAlchemyError as e:
             return error_response('Something went wrong while fetching categories')
         except Exception as e:
-            return error_response('Somthing went wrong, please try again..')
+            return error_response('Something went wrong, please try again..')
     
 
 class CategoryExploreAPI(Resource):
@@ -103,7 +103,7 @@ class CategoryExploreAPI(Resource):
         except SQLAlchemyError as e:
             return error_response('Something went wrong while fetching category')
         except Exception as e:
-            return error_response('Somthing went wrong, please try again..')
+            return error_response('Something went wrong, please try again..')
         
 
 class ActiveServiceListAPI(Resource):
@@ -167,14 +167,13 @@ class ActiveServiceListAPI(Resource):
             return error_response('Something went wrong while fetching services')
         except Exception as e:
             print(e)
-            return error_response('Somthing went wrong, please try again..')
+            return error_response('Something went wrong, please try again..')
 
 
 class ActiveServiceAPI(Resource):
 
     @cache.cached(timeout=1000, key_prefix=make_cache_key)
     def get(self, service_id):
-        print('slnblkfnb')
         try:
             service = (
                 db.session.query(
@@ -203,7 +202,7 @@ class ActiveServiceAPI(Resource):
             return error_response('Something went wrong while fetching service')
         except Exception as e:
             print(e)
-            return error_response('Somthing went wrong, please try again..')
+            return error_response('Something went wrong, please try again..')
 
 
 

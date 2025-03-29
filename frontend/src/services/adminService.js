@@ -131,7 +131,7 @@ export async function updateExistingCategoryForAdminDashboard(catId, categoryDat
       body: JSON.stringify(categoryData),
     })
 
-    
+
     if (resp.status == 401) {
       const respData = await resp.json()
       if (respData?.errors?.token_type) {
@@ -144,7 +144,7 @@ export async function updateExistingCategoryForAdminDashboard(catId, categoryDat
       throw new Error('Failed to update category!!')
     }
 
-    return 
+    return
   } catch (error) {
     throw new Error(error.message || 'Something went wrong during category update!!')
   }
@@ -409,5 +409,46 @@ export async function getAllCustomersForAdminDashboard(page, status) {
     return respData.data
   } catch (error) {
     throw new Error(error.message || 'Something went wrong fetching customers')
+  }
+}
+
+
+
+export async function getAllPaymentsForAdminDashboard(page) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const params = new URLSearchParams({ page: parseInt(page) })
+
+    const resp = await fetch(`/api/v1/admin/payments?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to fetch payments!!')
+    }
+
+    if (!respData.data && !respData.data.payments) {
+      throw new Error('Response has missing required fields: payments')
+    }
+
+    return respData.data
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong fetching payments!!')
   }
 }
