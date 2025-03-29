@@ -184,6 +184,43 @@ export async function getAllBookingsForProviderDashboard(provId, page, status) {
   }
 }
 
+export async function getBookingsForProviderDashboard(provId, bookingId) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/providers/${provId}/bookings/${bookingId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to fetch services !!')
+    }
+
+    if (!respData.data && !respData.data.booking) {
+      throw new Error('Response has missing required fields: booking')
+    }
+
+    return respData.data
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong fetching booking!!')
+  }
+}
+
 export async function confirmBookingForProviderDashboard(provId, bookingId) {
   try {
     const authStore = useAuthStore()
@@ -358,7 +395,6 @@ export async function getProfileForProviderDashboard(provId) {
 }
 
 
-
 export async function exportClosedBookingData(provId) {
   try {
     const authStore = useAuthStore()
@@ -411,17 +447,23 @@ export async function exportClosedBookingData(provId) {
 
         const status = taskData.data?.status
 
+        if (!status) {
+          throw new Error('Export failed, missing parameter status')
+        }
+
         if (status === 'SUCCESS') {
           console.log('export success')
           toast.success('Export success, check your mail')
           clearInterval(intervalId)
+
         } else if (status === 'FAILURE') {
           clearInterval(intervalId)
-          throw new Error('Export failed')
+          throw new Error('Export failed!!')
         }
+
       } catch (error) {
-        console.error('Error checking task status:', error)
         clearInterval(intervalId)
+        toast.error(error.message || 'Export failed!!')
       } 
     }, 2000)
 
@@ -432,3 +474,41 @@ export async function exportClosedBookingData(provId) {
 }
 
 
+export async function getAllPaymentsForProviderDashboard(provId, page) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const params = new URLSearchParams({ page: parseInt(page) })
+
+    const resp = await fetch(`/api/v1/providers/${provId}/payments?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to fetch services !!')
+    }
+
+    if (!respData.data && !respData.data.payments) {
+      throw new Error('Response has missing required fields: payments')
+    }
+
+    return respData.data
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong fetching payments!!')
+  }
+}

@@ -44,7 +44,7 @@ class Booking(db.Model):
 
     customer = db.relationship('Customer', back_populates='bookings')
     service = db.relationship('Service', back_populates='bookings')
-    payment = db.relationship('Payment', uselist=False)
+    payment = db.relationship('Payment', back_populates='booking', uselist=False)
     review = db.relationship('Review', uselist=False)
 
 
@@ -64,6 +64,8 @@ class Payment(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
+
+    booking = db.relationship('Booking', back_populates='payment')
 
     __table_args__ = (
         db.UniqueConstraint('cust_id', 'booking_id', name='uq__payments__cust_id__booking_id'),

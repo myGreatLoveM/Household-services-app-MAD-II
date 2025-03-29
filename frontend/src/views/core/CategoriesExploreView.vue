@@ -49,7 +49,7 @@ watch(
       <div v-else v-for="(cat, i) in data.categories" :key="i" class="max-w-sm rounded-lg overflow-hidden shadow-lg bg-white border border-gray-200">
         <div class="p-6 h-full flex flex-col justify-between">
           <h5 class="text-2xl font-bold mb-2 text-gray-900">
-            <a href="#">{{ cat.name }}</a>
+            <RouterLink :to="{ name: 'explore-category', params: { catId: cat.id } }">{{ cat.name }}</RouterLink>
           </h5>
 
           <p class="text-gray-700 text-base mb-4">

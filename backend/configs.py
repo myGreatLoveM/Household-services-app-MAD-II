@@ -34,6 +34,10 @@ class Config:
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
     ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
     ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', '*') 
+    CACHE_TYPE = 'RedisCache'
+    CACHE_DEFAULT_TIMEOUT = 300
+    CACHE_KEY_PREFIX = 'mycache'
+    CACHE_REDIS_URL = 'redis://localhost:6379/2'
 
 
 class CeleryConfig():

@@ -42,6 +42,43 @@ export async function getAllCategoriesForAdminDashboard(page) {
   }
 }
 
+export async function getCategoryForAdminDashboard(catId) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+
+    const resp = await fetch(`/api/v1/admin/categories/${catId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to fetch categories!!')
+    }
+
+    if (!respData.data && !respData.data.category) {
+      throw new Error('Response has missing required fields: category')
+    }
+
+    return respData.data
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong fetching category!!')
+  }
+}
 
 export async function createNewCategoryForAdminDashboard(categoryData) {
   try {
@@ -74,6 +111,42 @@ export async function createNewCategoryForAdminDashboard(categoryData) {
     return respData
   } catch (error) {
     throw new Error(error.message || 'Something went wrong creating new category!!')
+  }
+}
+
+export async function updateExistingCategoryForAdminDashboard(catId, categoryData) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+    console.log(categoryData);
+    const resp = await fetch(`/api/v1/admin/categories/${catId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(categoryData),
+    })
+
+    
+    if (resp.status == 401) {
+      const respData = await resp.json()
+      if (respData?.errors?.token_type) {
+        authStore.refreshExpiredAuthToken()
+        throw new Error('Auth Token Expired!!')
+      }
+    }
+
+    if (!resp.ok) {
+      throw new Error('Failed to update category!!')
+    }
+
+    return 
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong during category update!!')
   }
 }
 

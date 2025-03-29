@@ -1,5 +1,6 @@
 import ProviderBookingsView from '@/views/provider/ProviderBookingsView.vue'
 import ProviderDashboardView from '@/views/provider/ProviderDashboardView.vue'
+import ProviderPaymentsView from '@/views/provider/ProviderPaymentsView.vue'
 import ProviderPendingBookingsView from '@/views/provider/ProviderPendingBookingsView.vue'
 import ProviderProfileView from '@/views/provider/ProviderProfileView.vue'
 import ProviderServicesView from '@/views/provider/ProviderServicesView.vue'
@@ -39,7 +40,7 @@ export const providerRoutes = [
   {
     path: 'payments',
     name: 'provider-payments',
-    component: ProviderDashboardView,
+    component: ProviderPaymentsView,
   },
   {
     path: 'profile',

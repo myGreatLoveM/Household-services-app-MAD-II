@@ -8,7 +8,7 @@ import { getAllCategoriesForAdminDashboard } from "@/services/adminService.js";
 import PaginationBar from "@/components/PaginationBar.vue";
 import LoadingState from "@/components/LoadingState.vue";
 import ErrorState from "@/components/ErrorState.vue";
-import CategoryAddModal from "@/modals/CategoryAddModal.vue";
+import CategoryModal from "@/modals/CategoryModal.vue";
 import { formatDate } from "@/utils.js";
 
 
@@ -79,7 +79,7 @@ const emit = defineEmits(['categoryModalOpen', 'categoryModalClose'])
         :class="isPending ? 'bg-black/50 hover:bg-black/50 cursor-none' : 'bg-black hover:bg-black/80'"
         class="rounded-md  px-3 py-2 text-sm font-semibold text-white shadow-sm  "
       >
-        Add Category
+        Create Category
       </button>
     </div>
   </div>
@@ -146,12 +146,11 @@ const emit = defineEmits(['categoryModalOpen', 'categoryModalClose'])
             {{ formatDate(category.created_at) }}
           </td>
           <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
-            <a
-              href="#"
-              class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700"
-            >
-              View
-            </a>
+            <RouterLink :to="{ name: 'admin-single-category', params: { catId: category.id } }">
+              <button class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700">
+                View
+              </button>
+            </RouterLink>
           </td>
         </tr>
       </tbody>
@@ -168,5 +167,5 @@ const emit = defineEmits(['categoryModalOpen', 'categoryModalClose'])
   />
 
 </section>
-<CategoryAddModal v-if="isCategoryModelOpen" :closeCategoryModal="closeCategoryModal" @create-category="refetchCategories" />
+<CategoryModal v-if="isCategoryModelOpen" :closeCategoryModal="closeCategoryModal" @create-category="refetchCategories" />
 </template>

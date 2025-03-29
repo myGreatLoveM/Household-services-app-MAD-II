@@ -255,11 +255,13 @@ const handleCloseBooking = async (bookingId) => {
               {{ formatDate(booking.book_date) }}
             </td>
             <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
-              <button
-                class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700"
-              >
-                View
-              </button>
+              <RouterLink :to="{ name: 'provider-single-booking' , params: { bookingId: booking.id} }">
+                <button
+                  class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700"
+                >
+                  View
+                </button>
+              </RouterLink>
               <button
                 v-if="booking.status === BookingStatus.COMPLETE && !booking.is_closed"
                 @click="() => handleCloseBooking(booking.id)"

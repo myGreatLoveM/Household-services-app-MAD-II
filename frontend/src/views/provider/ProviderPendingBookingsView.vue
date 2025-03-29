@@ -70,10 +70,6 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
   }
 })
 
-watch(bookingData, () => {
-  console.log({ ...bookingData })
-})
-
 watch(rejectError, (errorVal) => {
   if (isRejectError.value && errorVal) {
     toast.error(`Failed to reject booking ${confirmBookingData.value.bookingId}!!`)
@@ -230,13 +226,15 @@ const handleConfirmBooking = async (bookingId) => {
               {{ formatDate(booking.book_date) }}
             </td>
             <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
-              <button
-                @disabled="isActionButtonsDisabled"
-                :class="isActionButtonsDisabled ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700' "
-                class="inline-block rounded  px-4 py-2 text-xs font-medium text-white "
-              >
-                View
-              </button>
+              <RouterLink :to="{ name: 'provider-single-booking', params: {bookingId: booking.id} }">
+                <button
+                  @disabled="isActionButtonsDisabled"
+                  :class="isActionButtonsDisabled ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700' "
+                  class="inline-block rounded  px-4 py-2 text-xs font-medium text-white "
+                >
+                  View
+                </button>
+              </RouterLink>
               <button
                 v-if="booking.status === BookingStatus.PENDING"
                 @click="() => handleConfirmBooking(booking.id)"

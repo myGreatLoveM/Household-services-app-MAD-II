@@ -13,9 +13,11 @@ def is_valid_email(email):
 
 
 # Helper function to generate cache key based on endpoint and parameters
-def make_cache_key():
+def make_cache_key(*args, **kwrags):
+    # print(args, kwrags)
+    # print(dir(args))
     args = request.args
-    return f"{request.path}?page={args.get('page')}&per_page={args.get('per_page')}"
+    return f"{request.path}?page={args.get('page')}"
 
 
 # Helper function to generate cache key based on all query parameters

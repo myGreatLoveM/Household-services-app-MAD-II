@@ -236,6 +236,7 @@ const handleUnblockService = async (serviceId, serviceName) => {
             </td>
 
             <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
+            <RouterLink :to="{ name: 'admin-single-service', params: { serviceId: service.id } }">
               <button
                 :disabled="isActionButtonsDisabled"
                 :class="isActionButtonsDisabled ? 'bg-indigo-300 cursor-none': 'bg-indigo-600 hover:bg-indigo-700'"
@@ -243,6 +244,7 @@ const handleUnblockService = async (serviceId, serviceName) => {
               >
                 View
               </button>
+            </RouterLink>
               <button
                 v-if="service.is_approved && !service.is_blocked && service.is_active"
                 :disabled="isActionButtonsDisabled"

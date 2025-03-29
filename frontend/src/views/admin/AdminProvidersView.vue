@@ -124,8 +124,8 @@ const handleUnblockProvider = async (provId, provUsername) => {
 
       <div class="flex items-center gap-10">
         <RouterLink :to="{ name: 'admin-providers-pending' }">
-          <button 
-            :disabled="isActionButtonsDisabled" 
+          <button
+            :disabled="isActionButtonsDisabled"
             :class="isActionButtonsDisabled ? 'bg-zinc-400' : 'bg-zinc-600 hover:bg-zinc-700'"
             class="rounded-md x px-3 py-2 text-sm font-semibold text-white shadow-sm "
           >
@@ -147,7 +147,6 @@ const handleUnblockProvider = async (provId, provUsername) => {
           <th scope="col"  class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Category</th>
           <th scope="col"  class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Active Services</th>
           <th scope="col"  class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Active Bookings</th>
-          <th scope="col"  class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Lifetime Earning</th>
           <th scope="col"  class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">Status</th>
           <th scope="col"  class="px-4 py-2">Action</th>
         </tr>
@@ -160,7 +159,6 @@ const handleUnblockProvider = async (provId, provUsername) => {
               <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-700">{{ prov.category.toUpperCase() }} </td>
               <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ prov.active_services }} </td>
               <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ prov.active_bookings }} </td>
-              <td class="whitespace-nowrap px-4 py-2 text-gray-700">0 ₹</td>
               <td class="whitespace-nowrap px-4 py-2 text-gray-700">
                 <span v-if="prov.is_approved && prov.is_blocked" class="whitespace-nowrap rounded-full border border-red-500 px-2.5 py-0.5 text-sm text-red-700 bg-red-100">
                     blocked

@@ -64,7 +64,7 @@ watch(
       </form>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-5">
-        <ServiceCard 
+        <ServiceCard
           v-for="(service,i) in data.services"
           :key="i"
           :id="service.id"
@@ -79,15 +79,16 @@ watch(
           :totalBookings="service.total_bookings"
         />
       </div>
+      
+      <PaginationBar
+        v-if="!isPending && !isError"
+        :total="data.no_of_services"
+        :pages="data.no_of_pages"
+        :currentPage="data.current_page"
+        :perPage="data?.per_page"
+        :path="{ name: route.name, query: { page } }"
+      />
     </div>
 
-    <PaginationBar 
-      v-if="!isPending && !isError"
-      :total="data.no_of_services"
-      :pages="data.no_of_pages"
-      :currentPage="data.current_page"
-      :perPage="data?.per_page"
-      :path="{ name: route.name, query: { page } }"
-    />
   </section>
 </template>

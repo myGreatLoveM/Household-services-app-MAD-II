@@ -29,11 +29,11 @@ def setup_periodic_tasks(sender: Celery, **kwargs):
         name='customer monthly report for bookings every 2 minutes'
     )
 
-    sender.add_periodic_task(
-        crontab(day_of_month=1, hour=5, minute=30), 
-        customer_bookings_monthly_report.s(), 
-        name='customer monthly report for bookings every 2 minutes'
-    )
+    # sender.add_periodic_task(
+    #     crontab(day_of_month=1, hour=5, minute=30), 
+    #     customer_bookings_monthly_report.s(), 
+    #     name='customer monthly report for bookings every 2 minutes'
+    # )
 
 
 

@@ -38,13 +38,13 @@ if (role.value === UserRoles.ADMIN) {
 
         <div class="space-x-5 lg:block">
           <RouterLink
-            to="/categories"
+            :to="{ name: 'explore-categories' }"
             class="text-md font-semibold text-gray-400 hover:text-gray-700"
           >
             categories
           </RouterLink>
           <RouterLink
-            to="/services"
+            :to="{ name: 'explore-listed-services' }"
             class="text-md font-semibold text-gray-400 hover:text-gray-700"
           >
             services

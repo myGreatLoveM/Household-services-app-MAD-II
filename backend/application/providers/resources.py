@@ -10,7 +10,7 @@ from application.admin.models import Category
 from application.core.models import User
 from application.customers.models import Booking, Payment, Review
 from .schemas import ProviderSchema, ServiceSchema, CreateServiceSchema
-from application.customers.schemas import BookingSchema, CustomerSchema
+from application.customers.schemas import BookingSchema, CustomerSchema, PaymentSchema
 from application.core.schemas import ProfileSchema, UserSchema
 from application.decorators import role_required
 from application.utils import error_response, success_response
@@ -276,14 +276,27 @@ class ProviderBookingMgmtAPI(Resource):
   @role_required(UserRoleEnum.PROVIDER.value)
   def get(self, prov_id, booking_id):
     try:
-      booking = Booking.query.filter_by(id=booking_id).first()
+      booking, service = (
+          db.session.query(
+              Booking,
+              Service
+          )
+          .join(Service, Booking.service)
+          .join(Provider, Service.provider)
+          .filter(Booking.id== booking_id, Provider.id==prov_id)
+          .first()
+        )
 
       if not booking:
         return error_response(f'Booking not exist with id {booking_id}', status_code=400)
       
-      schema = BookingSchema()
+      booking_schema = BookingSchema()
+      service_schema = ServiceSchema()
+      booking =  booking_schema.dump(booking)
+      booking['service'] = service_schema.dump(service)
+
       data = {
-        'booking': schema.dump(booking)
+        'booking': booking
       }
       return success_response(data=data)
 
@@ -384,7 +397,6 @@ class ProviderBookingMgmtAPI(Resource):
       return error_response('Something went wrong, please try again..')
 
 
-
 class ProviderClosedBookingCSVExport(Resource):
 
   @jwt_required()
@@ -420,8 +432,6 @@ class ProviderClosedBookingTask(Resource):
     except Exception as e:
       print(e)
       return error_response('Something went wrong, please try again..')
-
-
 
 
 class ProviderProfileAPI(Resource):
@@ -489,7 +499,50 @@ class ProviderProfileAPI(Resource):
       return error_response('Something went wrong, please try again..')
 
 
+class ProviderPaymentsListAPI(Resource):
 
+  @jwt_required()
+  @role_required(UserRoleEnum.PROVIDER.value)
+  def get(self, prov_id):
+    page = request.args.get('page', default=1, type=int)
+    per_page = current_app.config.get('ITEMS_PER_PAGE', 6)
+
+    try:
+      paginated = (
+        db.session.query(
+          Payment,
+          Service,
+        )
+        .join(Booking, Payment.booking)
+        .join(Service, Booking.service)
+        .filter(
+          Service.prov_id.is_(prov_id),
+        )
+        .order_by(Payment.created_at.desc())
+        .paginate(page=page, per_page=per_page, error_out=False)
+      )
+
+      payments = []
+      payment_schema = PaymentSchema()
+      for payment_obj, service in paginated:
+        payment = payment_schema.dump(payment_obj)
+        payment['service'] = service.name
+        payments.append(payment)
+
+      data = {
+        'payments':payments,
+        'no_of_payments': paginated.total,
+        'no_of_pages': paginated.pages,
+        'current_page': paginated.page,
+        'per_page': per_page,
+      }
+
+      return success_response(data=data)
+    except SQLAlchemyError as e:
+      return error_response('Something went wrong while fetching payments data!!')
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
 
 
 

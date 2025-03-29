@@ -123,8 +123,9 @@ class AdminCategoryListAPI(Resource):
             db.session.commit()
             time.sleep(5)
             return success_response(status_code=201)
-        except ValidationError as err:
-            return error_response('validation errors', errors=err.messages, status_code=400)
+        except ValidationError as e:
+            print(e)
+            return error_response('validation errors', errors=e.messages, status_code=400)
         except SQLAlchemyError as e:
             return error_response('Something went wrong while creating new category!!')
         except Exception as e:
@@ -139,9 +140,59 @@ class AdminCategoryAPI(Resource):
     @role_required(UserRoleEnum.ADMIN.value)
     def get(self, cat_id):
         try:
-            schema = CategorySchema(exclude=[''])
+            category, *stats = (
+                db.session.query(
+                    Category,
+                    db.func.coalesce(
+                        db.func.count(
+                            db.distinct(
+                                db.case((db.and_(Provider.is_approved==True, Provider.is_blocked==False), Provider.id))
+                            )
+                        ), 0
+                    ).label('active_providers'),
+                    db.func.coalesce(
+                        db.func.count(
+                            db.distinct(
+                                db.case((db.and_(Service.is_approved==True, Service.is_blocked==False, Service.is_active, Provider.is_approved==True, Provider.is_blocked==False), Service.id))
+                            )
+                        ), 0
+                    ).label('active_services'),
+                    db.func.coalesce(
+                        db.func.count(
+                            db.distinct(
+                                db.case((Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), Booking.id))
+                            )
+                        ), 0
+                    ).label('total_bookings'),  
+                    db.func.coalesce(
+                        db.func.sum(
+                            db.case((Payment.status.is_(PaymentStatusEnum.PAID.value), Payment.final_admin_amount))
+                        ), 0
+                    ).label('total_revenue'),  
+                )
+                .outerjoin(Provider, Category.providers)
+                .outerjoin(Service, Provider.services)
+                .outerjoin(Booking, Service.bookings)
+                .outerjoin(Payment, Booking.payment)
+                .group_by(Category.id)
+                .filter(Category.id == cat_id)
+                .first()
+            )
+
+            if not category:
+                return error_response(f'Category not exist with id {cat_id}', status_code=400)
+
+            schema = CategorySchema(exclude=['providers'])
+            category = schema.dump(category)
+            category['active_providers'] = stats[0]
+            category['active_services'] = stats[1]
+            category['total_bookings'] = stats[2]
+            category['total_revenue'] = stats[3]
+
+            return success_response(data={'category': category})
+           
         except SQLAlchemyError as e:
-            return error_response('Something went wrong while fetching categories')
+            return error_response('Something went wrong while fetching category')
         except Exception as e:
             print(e)
             return error_response('Somthing went wrong, please try again..')
@@ -149,7 +200,50 @@ class AdminCategoryAPI(Resource):
     @jwt_required()
     @role_required(UserRoleEnum.ADMIN.value)
     def put(self, cat_id):
-        pass
+        try:
+            category = Category.query.filter_by(id=cat_id).first()
+            
+            if not category:
+                
+                return error_response(f'Category not exists with id {cat_id}', status_code=400)
+
+            data = request.get_json()
+            
+            schema = CreateCategorySchema()
+            val_data = schema.load(data)
+
+            name = val_data.get('name')
+            base_price = val_data.get('basePrice')
+            min_time_hr = val_data.get('minTime')
+            service_rate = val_data.get('serviceRate')
+            booking_rate = val_data.get('bookingRate')
+            transaction_rate = val_data.get('transactionRate')
+            short_description = val_data.get('description')
+
+            is_cat_exist_with_name = Category.query.filter_by(name=name).first()
+
+            if is_cat_exist_with_name:
+                return error_response('Category with name already exists!!', status_code=409)
+
+            category.name = name 
+            category.base_price = base_price 
+            category.min_time_hr = min_time_hr
+            category.commission_rate = service_rate 
+            category.booking_rate = booking_rate 
+            category.transaction_rate = transaction_rate 
+            category.short_description = short_description 
+
+            db.session.commit()
+            time.sleep(5)
+            return success_response(status_code=204)
+        except ValidationError as err:
+            return error_response('validation errors', errors=err.messages, status_code=400)
+        except SQLAlchemyError as e:
+            print(e)
+            return error_response('Something went wrong while updating category!!')
+        except Exception as e:
+            print(e)
+            return error_response('Somthing went wrong, please try again..')
 
 
 class AdminServiceListAPI(Resource):
@@ -278,8 +372,10 @@ class AdminProviderListAPI(Resource):
                     db.session.query(
                         Provider,
                         db.func.count(
-                            db.case(
-                                (db.and_(Service.is_approved==True, Service.is_blocked==False, Service.is_active==True), Service.id)
+                            db.distinct(
+                                db.case(
+                                    (db.and_(Service.is_approved==True, Service.is_blocked==False, Service.is_active==True), Service.id)
+                                )
                             )
                         ).label('active_services'),
                         db.func.count(
@@ -292,7 +388,7 @@ class AdminProviderListAPI(Resource):
                     .outerjoin(Service, Provider.services)
                     .outerjoin(Booking, Service.bookings)
                     .group_by(Provider.id)
-                    .order_by(Provider.id)
+                    .order_by(Provider.id.desc())
                     .paginate(page=page, per_page=per_page, error_out=False)
                 )
 

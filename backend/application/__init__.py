@@ -3,7 +3,7 @@ from flask_security import SQLAlchemyUserDatastore
 
 
 from configs import Config
-from application.extensions import db, migrate, security, cors, jwt, ma
+from application.extensions import db, migrate, security, cors, jwt, ma, cache
 from application.blueprints import create_all_api_resource_blueprint
 from application.core.models import User, Role
 from .routes import home_bp
@@ -29,6 +29,8 @@ def create_app(main_file: str, config_obj: Config) -> Flask:
     
     ma.init_app(app)
 
+    cache.init_app(app)
+    
     datastore = SQLAlchemyUserDatastore(db, User, Role)
     security.init_app(app, datastore, register_blueprint=False)
     app.security = security
