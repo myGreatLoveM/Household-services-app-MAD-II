@@ -2,6 +2,7 @@ import { useAuthStore } from "@/stores/authStore.js"
 import { useToast } from "vue-toastification"
 
 
+
 export async function getAllServicesForProviderDashboard(provId, page) {
   try {
     const authStore = useAuthStore()
@@ -445,7 +446,7 @@ export async function exportClosedBookingData(provId) {
             'Content-Type': 'application/json',
           },
         })
-        
+
         const taskData = await taskResp.json()
 
         if (!taskResp.ok) {
@@ -471,7 +472,7 @@ export async function exportClosedBookingData(provId) {
       } catch (error) {
         clearInterval(intervalId)
         toast.error(error.message || 'Export failed!!')
-      } 
+      }
     }, 2000)
 
     return { taskId }

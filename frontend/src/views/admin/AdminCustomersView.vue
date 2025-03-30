@@ -226,7 +226,7 @@ const handleUnblockCustomer = async (custId, custUsername) => {
 
     <PaginationBar
       v-if="!isCustomerDataPending && !isCustomerDataError"
-      :total="customerData?.no_customers"
+      :total="customerData?.no_of_customers"
       :pages="customerData?.no_of_pages"
       :currentPage="page"
       :perPage="customerData?.per_page"

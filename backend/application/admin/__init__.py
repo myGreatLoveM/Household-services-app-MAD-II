@@ -4,7 +4,7 @@ from flask_restful import Api
 admin = Blueprint('admin', __name__)
 
 
-from .resources import AdminCategoryListAPI, AdminCategoryAPI, AdminServiceListAPI, AdminServiceMgmtAPI, AdminProviderListAPI, AdminProviderMgmtAPI, AdminCustomerMgmtAPI, AdminCustomerListAPI, AdminPaymentsListAPI
+from .resources import AdminCategoryListAPI, AdminCategoryAPI, AdminServiceListAPI, AdminServiceMgmtAPI, AdminProviderListAPI, AdminProviderMgmtAPI, AdminCustomerMgmtAPI, AdminCustomerListAPI, AdminPaymentsListAPI, AdminBookingListAPI, AdminClosedBookingCSVExport, AdminClosedBookingTask
 
 
 api = Api(admin)
@@ -21,5 +21,9 @@ api.add_resource(AdminProviderMgmtAPI, '/providers/<int:prov_id>')
 api.add_resource(AdminCustomerListAPI, '/customers')
 api.add_resource(AdminCustomerMgmtAPI, '/customers/<int:cust_id>')
 
+
+api.add_resource(AdminBookingListAPI, '/bookings')
+api.add_resource(AdminClosedBookingCSVExport, '/bookings/csv-export')
+api.add_resource(AdminClosedBookingTask, '/bookings/csv-export/<task_id>')
 
 api.add_resource(AdminPaymentsListAPI, '/payments')

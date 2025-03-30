@@ -428,6 +428,7 @@ class ProviderClosedBookingTask(Resource):
         'status': task.status,
         'result': task.result
       }
+      print(data)
       return success_response(data)
     except Exception as e:
       print(e)

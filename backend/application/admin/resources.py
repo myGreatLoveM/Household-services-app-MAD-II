@@ -13,11 +13,14 @@ from application.providers.models import Provider, Service
 from .schemas import CategorySchema, CreateCategorySchema
 from .parsers import admin_provider_query_args_parser, admin_service_query_args_parser
 from application.providers.schemas import ProviderSchema, ServiceSchema
-from application.customers.schemas import CustomerSchema, PaymentSchema
+from application.customers.schemas import BookingSchema, CustomerSchema, PaymentSchema
 
 from application.enums import BookingStatusEnum, ProviderServiceStatusEnum, UserRoleEnum, UserStatusEnum, PaymentStatusEnum
 from application.utils import error_response, success_response
 from application.decorators import role_required
+from application.tasks import admin_closed_booking_batch_csv_export
+from celery.result import AsyncResult
+
 
 
 class AdminCategoryListAPI(Resource):
@@ -593,3 +596,80 @@ class AdminPaymentsListAPI(Resource):
         except Exception as e:
             print(e)
             return error_response('Somthing went wrong, please try again..')
+
+
+
+class AdminBookingListAPI(Resource):
+
+    @jwt_required()
+    @role_required(UserRoleEnum.ADMIN.value)
+    def get(self): 
+        try:
+            page = request.args.get('page', default=1, type=int)
+            per_page = current_app.config.get('ITEMS_PER_PAGE', 6)
+            paginated = Booking.query.order_by(Booking.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+            booking_schema = BookingSchema(exclude=['review'])
+            service_schema = ServiceSchema()
+            bookings = []
+            
+            for booking_obj in paginated:
+                service = booking_obj.service
+                booking = booking_schema.dump(booking_obj)
+                booking['service'] = service_schema.dump(service)
+                bookings.append(booking)
+
+            data = {
+                'no_of_bookings': paginated.total,
+                'no_of_pages': paginated.pages,
+                'current_page': paginated.page,
+                'per_page': per_page,
+                'bookings': bookings
+            }
+
+            return success_response(data=data)
+        except SQLAlchemyError as e:
+            return error_response('Something went wrong while fetching bookings')
+        except Exception as e:
+            print(e)
+            return error_response('Somthing went wrong, please try again..')
+
+
+
+class AdminClosedBookingCSVExport(Resource):
+
+  @jwt_required()
+  @role_required(UserRoleEnum.ADMIN.value)
+  def post(self):
+    try:
+      task = admin_closed_booking_batch_csv_export.delay()
+      data = {
+        'id': task.id,
+        'status':  task.status 
+      }
+      print(data)
+      return success_response(data=data, status_code=202)
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
+
+  
+class AdminClosedBookingTask(Resource):
+
+  @jwt_required()
+  @role_required(UserRoleEnum.ADMIN.value)
+  def get(self, task_id):
+    try:
+      task = AsyncResult(task_id)
+
+      data = {
+        'id': task.id,
+        'status': task.status,
+        'result': task.result
+      }
+      print(data)
+      return success_response(data)
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
+
