@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
@@ -116,6 +116,16 @@ watch(
   },
 )
 
+const isExportAvailable = computed(() => {
+
+  if(bookingData.value?.bookings.length > 0 ) {
+    return bookingData.value.bookings.some((b) => b.is_closed)
+  }
+
+  return false
+})
+
+
 const handleExport = async () => {
   exportMutate()
 }
@@ -137,13 +147,14 @@ const handleCloseBooking = async (bookingId) => {
 
       <div class="flex items-center gap-10">
         <button
+          v-if="isExportAvailable"
           @click="handleExport"
           @diabled="isExportPending"
           class="rounded-md bg-zinc-600 hover:bg-zinc-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
         >
           Export CSV Closed Bookings
         </button>
-        <RouterLink :to="{ name: 'provider-pending-bookings', params: { provId } }">
+        <RouterLink  :to="{ name: 'provider-pending-bookings', params: { provId } }">
           <button
             class="rounded-md bg-zinc-600 hover:bg-zinc-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
           >

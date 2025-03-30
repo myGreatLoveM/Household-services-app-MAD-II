@@ -4,13 +4,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
 import { useAuthUserStore } from '@/stores/authUserStore'
-import { getAllBookingForCustomerDashboard, completeBookingForCustomerDashboard } from '@/services/customerService.js'
+import {
+  getAllBookingForCustomerDashboard,
+  completeBookingForCustomerDashboard,
+} from '@/services/customerService.js'
 import PaginationBar from '@/components/PaginationBar.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import { formatDate } from '@/utils.js'
 import { BookingStatus } from '@/constants.js'
-
 
 const queryClient = useQueryClient()
 const authUserStore = useAuthUserStore()
@@ -28,7 +30,7 @@ const {
   isError: isBookingDataError,
   error: bookingDataError,
   isStale,
-  isFetched
+  isFetched,
 } = useQuery({
   queryKey: () => ['customers', custId, 'bookings', page.value, BookingStatus.ACTIVE],
   queryFn: () => getAllBookingForCustomerDashboard(custId, page.value, BookingStatus.ACTIVE),
@@ -44,13 +46,11 @@ const {
   error: completeError,
   isError: isCompleteError,
 } = useMutation({
-  mutationFn: (bookingId) =>
-    completeBookingForCustomerDashboard(custId, bookingId),
+  mutationFn: (bookingId) => completeBookingForCustomerDashboard(custId, bookingId),
 })
 
-
 onMounted(async () => {
-  console.log(isStale.value, isFetched.value);
+  console.log(isStale.value, isFetched.value)
 
   isEnabled.value = true
   refetchBookings()
@@ -62,13 +62,11 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
   }
 })
 
-
 watch(completeError, (errorVal) => {
   if (isCompleteError.value && errorVal) {
     toast.error(`Failed to complete booking ${completeBookingData.value.bookingId}!!`)
   }
 })
-
 
 watch(isCompleteSuccess, (isCompleteSuccessVal) => {
   if (isCompleteSuccessVal) {
@@ -97,7 +95,6 @@ watch(
 const handleCompleteBooking = async (bookingId) => {
   completeBookingMutate(bookingId)
 }
-
 </script>
 
 <template>
@@ -107,7 +104,9 @@ const handleCompleteBooking = async (bookingId) => {
     >
       <div>
         <h2 class="text-lg font-semibold">All Bookings</h2>
-        <p class="mt-1 text-sm text-gray-700">This is a list of all active or completed bookings.</p>
+        <p class="mt-1 text-sm text-gray-700">
+          This is a list of all active or completed bookings.
+        </p>
       </div>
 
       <div class="flex items-center gap-10">
@@ -178,13 +177,19 @@ const handleCompleteBooking = async (bookingId) => {
             </td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
               <span
-                v-if="booking.status === BookingStatus.ACTIVE"
+                v-if="booking.status === BookingStatus.CONFIRM"
+                class="whitespace-nowrap rounded-full border border-purple-500 px-2.5 py-0.5 text-sm text-purple-700 bg-purple-100"
+              >
+                confirmed
+              </span>
+              <span
+                v-else-if="booking.status === BookingStatus.ACTIVE"
                 class="whitespace-nowrap rounded-full border border-green-500 px-2.5 py-0.5 text-sm text-green-700 bg-green-100"
               >
                 active
               </span>
               <span
-                v-if="booking.status === BookingStatus.COMPLETE"
+                v-else-if="booking.status === BookingStatus.COMPLETE"
                 class="whitespace-nowrap rounded-full border border-pink-500 px-2.5 py-0.5 text-sm text-pink-700 bg-pink-100"
               >
                 completed
@@ -194,22 +199,34 @@ const handleCompleteBooking = async (bookingId) => {
               {{ formatDate(booking.book_date) }}
             </td>
             <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
-              <button
-                :disabled="isCompletePending"
-                :class="isCompletePending ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'"
-                class="inline-block rounded px-4 py-2 text-xs font-medium text-white"
-              >
-                View
-              </button>
+              <RouterLink :to="{ name: 'customer-single-booking', params: {bookingId: booking.id} }">
+                <button
+                  :disabled="isCompletePending"
+                  :class="isCompletePending ? 'bg-indigo-400' : 'bg-indigo-600 hover:bg-indigo-700'"
+                  class="inline-block rounded px-4 py-2 text-xs font-medium text-white"
+                >
+                  View
+                </button>
+              </RouterLink>
               <button
                 v-if="booking.status === BookingStatus.ACTIVE"
                 @click="() => handleCompleteBooking(booking.id)"
                 :disabled="isCompletePending"
                 :class="isCompletePending ? 'bg-pink-400' : 'bg-pink-600 hover:bg-pink-700'"
-                class="inline-block rounded  px-4 py-2 text-xs font-medium text-white "
+                class="inline-block rounded px-4 py-2 text-xs font-medium text-white"
               >
                 Complete
               </button>
+              <RouterLink
+                v-if="booking.payment && booking.status === BookingStatus.CONFIRM"
+                :to="{ name: 'booking-payment', params: { custId, paymentId: booking.payment.id } }"
+              >
+                <button
+                  class="inline-block rounded bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+                >
+                  Pay
+                </button>
+              </RouterLink>
             </td>
           </tr>
         </tbody>

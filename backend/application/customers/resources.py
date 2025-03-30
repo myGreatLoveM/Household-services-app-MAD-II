@@ -14,7 +14,58 @@ from application.decorators import role_required
 from application.utils import success_response, error_response
 from application.enums import PaymentMethodEnum, PaymentStatusEnum, UserRoleEnum, BookingStatusEnum
 
-    
+
+
+class CustomerDashboardAPI(Resource):
+
+  def get(self, cust_id):
+    try:
+      booking_stats = (
+        db.session.query(
+          db.func.count(
+              db.case((
+                  db.and_(Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value])), Booking.id
+              ))
+          ).label('total_bookings'),
+          db.func.count(
+              db.case((
+                  db.and_(Booking.status.is_(BookingStatusEnum.ACTIVE.value)), Booking.id
+              ))
+          ).label('active_bookings'),
+          db.func.count(
+              db.case((
+                  db.and_(Booking.status.is_(BookingStatusEnum.COMPLETE.value)), Booking.id
+              ))
+          ).label('completed_bookings'),
+          db.func.coalesce(
+              db.func.sum(
+                db.case((
+                    db.and_(Payment.status.in_([PaymentStatusEnum.PAID.value])), Payment.total_amount
+                ))
+            ), 0)
+            .label('total_spent'),
+        )
+        .outerjoin(Payment, Booking.payment)
+        .filter(Booking.cust_id == cust_id)
+        .first() 
+       )
+
+      data = {
+        'total_bookings' : booking_stats[0],
+        'active_bookings' : booking_stats[1],
+        'completed_bookings' : booking_stats[2],
+        'total_spent' : booking_stats[3],
+      }
+
+      return success_response(data=data)
+    except SQLAlchemyError as e:
+      print(e)
+      return error_response('Something went wrong while fetching dashboard data')
+    except Exception as e:
+      print(e)
+      return error_response('Somthing went wrong, please try again..')
+
+
 
 class CustomerBookingsListAPI(Resource):
     
@@ -40,12 +91,12 @@ class CustomerBookingsListAPI(Resource):
 
       if status == BookingStatusEnum.ACTIVE.value:
         query = query.filter(
-          Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), 
+          Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value, BookingStatusEnum.CONFIRM.value]), 
           Customer.id==cust_id
         )
       elif status == BookingStatusEnum.PENDING.value:
         query = query.filter(
-          Booking.status.notin_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), 
+          Booking.status.notin_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value, BookingStatusEnum.CONFIRM.value]), 
           Customer.id==cust_id
         )
 
@@ -124,7 +175,37 @@ class CustomerBookingMgmtAPI(Resource):
   @jwt_required()
   @role_required(UserRoleEnum.CUSTOMER.value)
   def get(self, cust_id, booking_id):
-    pass
+    try:
+      booking, service = (
+        db.session.query(
+          Booking, Service
+        )
+        .outerjoin(Service, Booking.service)
+        .filter(
+          Booking.cust_id == cust_id, 
+          Booking.id == booking_id
+        )
+        .first()
+      )
+      if not booking:
+        return error_response(f'Booking not exist with id {booking_id}', status_code=400)
+      
+      booking_schema = BookingSchema()
+      service_schema = ServiceSchema()
+      booking =  booking_schema.dump(booking)
+      booking['service'] = service_schema.dump(service)
+
+      data = {
+        'booking': booking
+      }
+      return success_response(data=data)
+
+    except SQLAlchemyError as e:
+      print(e)
+      return error_response('Something went wrong fetching booking!!')
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
 
 
   @jwt_required()
@@ -160,7 +241,6 @@ class CustomerBookingMgmtAPI(Resource):
       print(e)
       db.session.rollback()
       return error_response('Something went wrong, please try again..')
-
 
 
 class CustomerPaymentHandleAPI(Resource):
@@ -334,4 +414,51 @@ class CustomerProfileAPI(Resource):
     except Exception as e:
       print(e)
       db.session.rollback()
+      return error_response('Something went wrong, please try again..')
+    
+
+class CustomerPaymentListAPI(Resource):
+
+  @jwt_required()
+  @role_required(UserRoleEnum.CUSTOMER.value)
+  def get(self, cust_id):
+    try:
+      page = request.args.get('page', default=1, type=int)
+      per_page = current_app.config.get('ITEMS_PER_PAGE', 6)
+      paginated = (
+        db.session.query(
+          Payment,
+          Service,
+        )
+        .join(Booking, Payment.booking)
+        .join(Service, Booking.service)
+        .filter(
+          Booking.cust_id==cust_id,
+        )
+        .order_by(Payment.created_at.desc())
+        .paginate(page=page, per_page=per_page, error_out=False)
+      )
+
+      payments = []
+      payment_schema = PaymentSchema()
+      service_schema = ServiceSchema()
+
+      for payment_obj, service in paginated:
+        payment = payment_schema.dump(payment_obj)
+        payment['service'] = service_schema.dump(service)
+        payments.append(payment)
+
+      data = {
+        'payments':payments,
+        'no_of_payments': paginated.total,
+        'no_of_pages': paginated.pages,
+        'current_page': paginated.page,
+        'per_page': per_page,
+      }
+
+      return success_response(data=data)
+    except SQLAlchemyError as e:
+      return error_response('Something went wrong while fetching payments data!!')
+    except Exception as e:
+      print(e)
       return error_response('Something went wrong, please try again..')

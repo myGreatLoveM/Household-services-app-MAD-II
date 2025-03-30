@@ -4,6 +4,7 @@ import CustomerPaymentsView from '@/views/customer/CustomerPaymentsView.vue'
 import CustomerPendingBookingsView from '@/views/customer/CustomerPendingBookingsView.vue'
 import CustomerPendingPaymentsView from '@/views/customer/CustomerPendingPaymentsView.vue'
 import CustomerProfileView from '@/views/customer/CustomerProfileView.vue'
+import CustomerSingleBookingVIew from '@/views/customer/CustomerSingleBookingVIew.vue'
 
 
 export const customerRoutes = [
@@ -24,6 +25,11 @@ export const customerRoutes = [
         path: 'pending',
         name: 'customer-pending-bookings',
         component: CustomerPendingBookingsView,
+      },
+      {
+        path: ':bookingId(\\d+)',
+        name: 'customer-single-booking',
+        component: CustomerSingleBookingVIew,
       },
     ],
   },

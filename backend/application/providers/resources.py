@@ -505,10 +505,10 @@ class ProviderPaymentsListAPI(Resource):
   @jwt_required()
   @role_required(UserRoleEnum.PROVIDER.value)
   def get(self, prov_id):
-    page = request.args.get('page', default=1, type=int)
-    per_page = current_app.config.get('ITEMS_PER_PAGE', 6)
 
     try:
+      page = request.args.get('page', default=1, type=int)
+      per_page = current_app.config.get('ITEMS_PER_PAGE', 6)
       paginated = (
         db.session.query(
           Payment,

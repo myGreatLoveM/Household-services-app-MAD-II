@@ -1,6 +1,5 @@
 import { useAuthStore } from '@/stores/authStore.js'
 
-
 export async function createBookingForCustomer(custId, serviceId, bookingData) {
   try {
     const authStore = useAuthStore()
@@ -123,7 +122,7 @@ export async function confirmPaymentOfBookingForCustomerDashboard(custId, paymen
         Authorization: `Bearer ${authStore.authToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({...paymentData}),
+      body: JSON.stringify({ ...paymentData }),
     })
 
     if (resp.status == 401) {
@@ -140,7 +139,7 @@ export async function confirmPaymentOfBookingForCustomerDashboard(custId, paymen
 
     return { paymentId }
   } catch (error) {
-    console.log(error);
+    console.log(error)
     throw new Error(error.message || 'Something went wrong during payment confirm!!')
   }
 }
@@ -279,5 +278,115 @@ export async function getProfileForCustomerDashboard(custId) {
     return respData.data.customer
   } catch (error) {
     throw new Error(error.message || 'Something went wrong fetching profile!!')
+  }
+}
+
+export async function getAllPaymentsForCustomerDashboard(custId, page) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const params = new URLSearchParams({ page: parseInt(page) })
+
+    const resp = await fetch(`/api/v1/customers/${custId}/payments?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to fetch payments !!')
+    }
+
+    if (!respData.data && !respData.data.payments) {
+      throw new Error('Response has missing required fields: payments')
+    }
+
+    return respData.data
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong fetching payments!!')
+  }
+}
+
+
+export async function getBookingForCustomerDashboard(custId, bookingId) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/customers/${custId}/bookings/${bookingId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to fetch bookings !!')
+    }
+
+    if (!respData.data && !respData.data.booking) {
+      throw new Error('Response has missing required fields: booking')
+    }
+
+    return respData.data
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong fetching booking!!')
+  }
+}
+
+export async function getDashboardDataForCustomerDashboard(custId) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/customers/${custId}/dashboard`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to fetch dashboard data !!')
+    }
+
+    return respData.data
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong !!')
   }
 }

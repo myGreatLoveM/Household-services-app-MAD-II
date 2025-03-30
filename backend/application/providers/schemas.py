@@ -11,7 +11,7 @@ class ProviderSchema(ma.SQLAlchemyAutoSchema):
         include_fk = False
         include_relationships = False
 
-    user = fields.Nested('UserSchema', dump_only=True, only=['username', 'profile'])
+    user = fields.Nested('UserSchema', dump_only=True, only=['username', 'email', 'profile'])
     category = fields.Nested('CategorySchema', dump_only=True, only=['name'])
     services = fields.List(fields.Nested('ServiceSchema', many=True, exclude=['provider', 'bookings']))
     location = fields.Method('get_location')

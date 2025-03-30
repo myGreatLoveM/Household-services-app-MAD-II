@@ -6,14 +6,15 @@ import { useRoute } from 'vue-router'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import { formatDate } from '@/utils.js'
-import { getBookingsForProviderDashboard } from '@/services/providerService'
+import { getBookingForCustomerDashboard } from '@/services/customerService'
 import { PaymentStatus } from '@/constants'
+
 
 const toast = useToast()
 const route = useRoute()
 
 const isEnabled = ref(false)
-const provId = route.params.provId
+const custId = route.params.custId
 const bookingId = route.params.bookingId
 
 const {
@@ -23,8 +24,8 @@ const {
   isError: isBookingDataError,
   error: bookingDataError,
 } = useQuery({
-  queryKey: () => ['providers', provId, 'bookings', bookingId],
-  queryFn: () => getBookingsForProviderDashboard(provId, bookingId),
+  queryKey: () => ['customers', custId, 'bookings', bookingId],
+  queryFn: () => getBookingForCustomerDashboard(custId, bookingId),
   enabled: isEnabled.value,
   keepPreviousData: true,
 })
@@ -63,26 +64,28 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
       <div class="bg-gray-50 p-6 rounded-lg shadow-sm space-y-2">
-        <h3 class="text-lg font-medium text-gray-700 mb-4">Customer Information</h3>
+        <h3 class="text-lg font-medium text-gray-700 mb-4">Provider Information</h3>
         <p class="text-gray-600">
           Name:
           <span class="font-semibold">{{
-            bookingData.booking.customer.user.profile.first_name
+            bookingData.booking.service.provider.user.profile.first_name +
+            ' ' +
+            bookingData.booking.service.provider.user.profile.last_name
           }}</span>
         </p>
         <p class="text-gray-600">
           Location:
           <span class="font-semibold">{{
-            bookingData.booking.customer.user.profile.location
+            bookingData.booking.service.provider.user.profile.location
           }}</span>
         </p>
         <p class="text-gray-600">
-          Email: <span class="font-semibold">{{ bookingData.booking.customer.user.email }}</span>
+          Email: <span class="font-semibold">{{ bookingData.booking.service.provider.user.email }}</span>
         </p>
         <p class="text-gray-600">
           Contact:
           <span class="font-semibold"
-            >+91 {{ bookingData.booking.customer.user.profile.contact }}</span
+            >+91 {{ bookingData.booking.service.provider.user.profile.contact }}</span
           >
         </p>
       </div>
@@ -144,7 +147,7 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
       </div>
 
 
-      <div class="bg-gray-50 p-6 rounded-lg shadow-sm space-y-2" v-if="bookingData.booking.payment.status === PaymentStatus.PAID">
+      <div class="bg-gray-50 p-6 rounded-lg shadow-sm space-y-2" v-if="bookingData.booking.payment && bookingData.booking.payment.status === PaymentStatus.PAID">
         <h3 class="text-lg font-medium text-gray-700 mb-4">Payment Information</h3>
         <p class="text-gray-600">
           Payment Status: <span class="font-semibold text-green-500">{{ bookingData.booking.payment.status }}</span>

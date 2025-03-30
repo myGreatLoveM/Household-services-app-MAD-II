@@ -143,28 +143,16 @@ watch(
               >
                 cancelled
               </span>
-              <span
-                v-else-if="booking.status === BookingStatus.CONFIRM"
-                class="whitespace-nowrap rounded-full border border-purple-500 px-2.5 py-0.5 text-sm text-purple-700 bg-purple-100"
-              >
-                confirmed
-              </span>
             </td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
               {{ formatDate(booking.book_date) }}
             </td>
             <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
-              <button
-                class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700"
-              >
-                View
-              </button>
-              <RouterLink v-if="booking.payment" :to="{ name: 'booking-payment' , params: { custId, paymentId: booking.payment.id }}">
+              <RouterLink :to="{ name: 'customer-single-booking', params: { bookingId:booking.id } }">
                 <button
-                  v-if="booking.status === BookingStatus.CONFIRM"
-                  class="inline-block rounded bg-emerald-600 px-4 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+                  class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700"
                 >
-                  Pay
+                  View
                 </button>
               </RouterLink>
             </td>
