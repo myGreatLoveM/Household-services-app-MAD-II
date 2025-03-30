@@ -227,7 +227,6 @@ class AdminCategoryListAPI(Resource):
             admin.categories.append(new_category)
             db.session.add(new_category)
             db.session.commit()
-            time.sleep(5)
             return success_response(status_code=201)
         except ValidationError as e:
             print(e)

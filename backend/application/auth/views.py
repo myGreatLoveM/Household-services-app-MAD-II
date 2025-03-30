@@ -48,7 +48,6 @@ def login():
                 "refresh_token": refresh_token
             }
             print(data)
-            time.sleep(3)
             return success_response(data, 'user logged in successfully', status_code=201)
         else:
             return error_response('wrong password, invalid credentials', status_code=401)
@@ -112,7 +111,6 @@ def register(role):
             new_user.provider = new_provider
             category_obj.providers.append(new_provider)
         db.session.commit()
-        time.sleep(3)
         return success_response(message='user registered successfully', status_code=201)
     except ValidationError as err:
         return error_response('validation errors', errors=err.messages, status_code=400)
