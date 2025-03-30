@@ -3,6 +3,39 @@ import { useToast } from "vue-toastification"
 
 
 
+export async function getDashboardDataForProviderDashboard(provId) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/providers/${provId}/dashboard`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to fetch dashboard data !!')
+    }
+
+    return respData.data
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong !!')
+  }
+}
+
 export async function getAllServicesForProviderDashboard(provId, page) {
   try {
     const authStore = useAuthStore()

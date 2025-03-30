@@ -25,7 +25,85 @@ class ProviderDashboardStatsAPI(Resource):
   @jwt_required()
   @role_required(UserRoleEnum.PROVIDER.value)
   def get(self, prov_id):
-    pass
+    try:
+
+      prov_stats = (
+        db.session.query(
+          db.func.count(
+            db.distinct(
+              db.case(
+                (Service.is_active.is_(True), Service.id)
+              )
+            )
+          ).label('total_active_services'),
+          db.func.count(
+            db.case(
+              (db.and_(Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value])), Booking.id)
+            )
+          ).label('total_bookings'),
+          db.func.count(
+            db.case(
+              (db.and_(Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value])), Booking.id)
+            )
+          ).label('active_bookings'),
+          db.func.count(
+            db.case(
+              (Booking.is_closed==True, Booking.id)
+            )
+          ).label('closed_bookings'),
+          db.func.coalesce(
+            db.func.sum(
+              db.case(
+                (Booking.is_closed == True, Payment.final_provider_amount)
+              )
+          ), 0).label('total_lifetime_earning'),
+          db.func.coalesce(
+            db.func.sum(
+              db.case(
+                (db.and_(Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), Booking.is_closed==False), Payment.final_provider_amount)
+              )
+          ), 0).label('total_pending_earning'),
+          db.func.coalesce(
+            db.func.round(
+              db.func.avg(
+                db.case(
+                  (Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), Payment.amount)
+                )
+              ), 2
+            ), 0
+          ).label('avg_booking_amount'),
+          db.func.coalesce(db.func.avg(Review.rating), 0).label('avg_rating'),
+          db.func.count(Review.id).label('total_reviews')
+        )
+        .outerjoin(Service, Provider.services) 
+        .outerjoin(Booking, Service.bookings) 
+        .outerjoin(Payment, Booking.payment) 
+        .outerjoin(Review, Booking.review) 
+        .filter(
+            Provider.id == prov_id, Provider.is_approved == True, Provider.is_blocked == False,
+            Service.is_approved == True, Service.is_blocked == False,
+        ) 
+        .group_by(Provider.id) 
+        .first()
+      )
+
+      data = {
+        'total_active_services': prov_stats[0],
+        'total_bookings': prov_stats[1],
+        'active_bookings': prov_stats[2],
+        'active_bookings': prov_stats[3],
+        'total_lifetime_earning': prov_stats[4],
+        'total_pending_earning': prov_stats[5],
+        'avg_booking_amount': prov_stats[6],
+        'avg_rating': prov_stats[7],
+        'total_reviews': prov_stats[8]
+      }
+      return success_response(data=data)
+    except SQLAlchemyError as e:
+      return error_response('Something went wrong while fetching dashboard data')
+    except Exception as e:
+      print(e)
+      return error_response('Something went wrong, please try again..')
 
 
 class ProviderServiceListAPI(Resource):

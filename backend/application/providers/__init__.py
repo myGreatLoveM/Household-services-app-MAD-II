@@ -7,7 +7,10 @@ api = Api(provider)
 
 
 
-from .resources import ProviderServiceListAPI, ProviderProfileAPI, ProviderServiceMgmtAPI, ProviderBookingListAPI, ProviderBookingMgmtAPI, ProviderClosedBookingCSVExport, ProviderClosedBookingTask, ProviderPaymentsListAPI
+from .resources import ProviderServiceListAPI, ProviderProfileAPI, ProviderServiceMgmtAPI, ProviderBookingListAPI, ProviderBookingMgmtAPI, ProviderClosedBookingCSVExport, ProviderClosedBookingTask, ProviderPaymentsListAPI, ProviderDashboardStatsAPI
+
+
+api.add_resource(ProviderDashboardStatsAPI, '/dashboard')
 
 # services
 api.add_resource(ProviderServiceListAPI, '/services')
