@@ -23,6 +23,108 @@ from celery.result import AsyncResult
 
 
 
+class AdminDashboardAPI(Resource):
+
+    @jwt_required()
+    @role_required(UserRoleEnum.ADMIN.value)
+    def get(self): 
+        try:
+            prov_stats = (
+                db.session.query(
+                    db.func.count(
+                        db.distinct(Provider.id)
+                    ).label('active_providers'),
+                    db.func.count(
+                        db.case(
+                            (db.and_(Service.is_active==True, Service.is_approved==True, Service.is_blocked==False), Service.id)
+                        )
+                    ).label('active_services'),
+                )
+                .join(Service, Provider.services)
+                .filter(
+                    Provider.is_approved==True, Provider.is_blocked==False
+                )
+                .first()
+            )    
+
+            stats = (
+                db.session.query(
+                    db.func.count(
+                        db.distinct(
+                            db.case(
+                                (Customer.is_blocked==False, Customer.id)
+                            )
+                        )
+                    ).label('active_customers'),
+                    db.func.count(
+                        db.distinct(
+                            db.case(
+                                (db.and_(Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), Booking.is_closed==False), Booking.id)
+                            )
+                        )
+                    ).label('active_bookings'),
+                    db.func.count(
+                        db.distinct(
+                            db.case(
+                                (Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), Booking.id)
+                            )
+                        )
+                    ).label('total_bookings'),
+                    db.func.coalesce(
+                        db.func.sum(
+                            db.case(
+                                (db.and_(Payment.status==PaymentStatusEnum.PAID.value, Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), Booking.is_closed==False), Payment.final_provider_amount)
+                            )
+                        ), 0
+                    ).label('total_pending_payments'),
+                    db.func.coalesce(
+                        db.func.sum(
+                            db.case(
+                                (db.and_(Payment.status==PaymentStatusEnum.PAID.value, Booking.is_closed==True), Payment.final_provider_amount)
+                            )
+                        ), 0
+                    ).label('total_payments_handout'),
+                    db.func.coalesce(
+                        db.func.sum(
+                            db.case(
+                                (Payment.status==PaymentStatusEnum.PAID.value, Payment.final_admin_amount)
+                            )
+                        ), 0
+                    ).label('total_revenue_generated'),
+                    db.func.coalesce(
+                        db.func.sum(
+                            db.case(
+                                (Payment.status==PaymentStatusEnum.PAID.value, Payment.total_amount)
+                            )
+                        ), 0
+                    ).label('total_payments_made'),
+                )
+                .outerjoin(Booking, Customer.bookings)
+                .outerjoin(Payment, Booking.payment)
+                .first()
+            )
+
+            data = {
+                'active_providers': prov_stats[0],
+                'active_services': prov_stats[1],
+                'active_customers': stats[0],
+                'active_bookings': stats[1],
+                'total_bookings': stats[2],
+                'total_pending_payments': stats[3],
+                'total_payments_handout': stats[4],
+                'total_revenue_generated': stats[5],
+                'total_payments_made': stats[6],
+            }
+
+            return success_response(data=data)
+        except SQLAlchemyError as e:
+            print(e)
+            return error_response('Something went wrong, computing dashboard data!!')
+        except Exception as e:
+            print(e)
+            return error_response('Somthing went wrong, please try again..')
+
+
 class AdminCategoryListAPI(Resource):
 
     @jwt_required()

@@ -4,10 +4,13 @@ from flask_restful import Api
 admin = Blueprint('admin', __name__)
 
 
-from .resources import AdminCategoryListAPI, AdminCategoryAPI, AdminServiceListAPI, AdminServiceMgmtAPI, AdminProviderListAPI, AdminProviderMgmtAPI, AdminCustomerMgmtAPI, AdminCustomerListAPI, AdminPaymentsListAPI, AdminBookingListAPI, AdminClosedBookingCSVExport, AdminClosedBookingTask
+from .resources import AdminCategoryListAPI, AdminCategoryAPI, AdminServiceListAPI, AdminServiceMgmtAPI, AdminProviderListAPI, AdminProviderMgmtAPI, AdminCustomerMgmtAPI, AdminCustomerListAPI, AdminPaymentsListAPI, AdminBookingListAPI, AdminClosedBookingCSVExport, AdminClosedBookingTask, AdminDashboardAPI
 
 
 api = Api(admin)
+
+
+api.add_resource(AdminDashboardAPI, '/dashboard')
 
 api.add_resource(AdminCategoryListAPI, '/categories')
 api.add_resource(AdminCategoryAPI, '/categories/<int:cat_id>')

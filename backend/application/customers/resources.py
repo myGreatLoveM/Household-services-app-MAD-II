@@ -15,8 +15,11 @@ from application.utils import success_response, error_response
 from application.enums import PaymentMethodEnum, PaymentStatusEnum, UserRoleEnum, BookingStatusEnum
 
 
+
 class CustomerReviewAPI(Resource):
 
+  @jwt_required()
+  @role_required(UserRoleEnum.CUSTOMER.value)
   def post(self, cust_id, booking_id):
     try:
       data = request.get_json()
