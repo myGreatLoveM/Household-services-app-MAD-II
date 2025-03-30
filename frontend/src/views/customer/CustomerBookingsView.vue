@@ -74,8 +74,8 @@ watch(isCompleteSuccess, (isCompleteSuccessVal) => {
       predicate: () => (query) => {
         return (
           Array.isArray(query.queryKey) &&
-          query.queryKey[0] === 'providers' &&
-          query.queryKey[2] === 'services'
+          query.queryKey[0] === 'customers' &&
+          query.queryKey[2] === 'bookings'
         )
       },
     })

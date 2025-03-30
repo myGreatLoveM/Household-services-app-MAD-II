@@ -7,12 +7,13 @@ import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
 import { formatDate } from '@/utils.js'
 import { getBookingForCustomerDashboard } from '@/services/customerService'
-import { PaymentStatus } from '@/constants'
-
+import { BookingStatus, PaymentStatus } from '@/constants'
+import ReviewModal from '@/modals/ReviewModal.vue'
+import RatingStar from '@/components/RatingStar.vue'
 
 const toast = useToast()
 const route = useRoute()
-
+const isReviewModalOpen = ref(false)
 const isEnabled = ref(false)
 const custId = route.params.custId
 const bookingId = route.params.bookingId
@@ -20,7 +21,7 @@ const bookingId = route.params.bookingId
 const {
   data: bookingData,
   isPending: isBookingDataPending,
-  refetch: refetchBookings,
+  refetch: refetchBooking,
   isError: isBookingDataError,
   error: bookingDataError,
 } = useQuery({
@@ -32,7 +33,7 @@ const {
 
 onMounted(async () => {
   isEnabled.value = true
-  refetchBookings()
+  refetchBooking()
 })
 
 watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
@@ -40,6 +41,18 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
     toast.error(errorVal.message || 'Failed to fetch booking data!!')
   }
 })
+
+const openReviewModal = () => {
+  isReviewModalOpen.value = true
+  emit('review-modal-open')
+}
+
+const closeReviewModal = () => {
+  isReviewModalOpen.value = false
+  emit('review-modal-close')
+}
+
+const emit = defineEmits(['review-modal-open', 'review-modal-close'])
 </script>
 
 <template>
@@ -48,6 +61,7 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
 
   <div
     v-else
+    :class="isReviewModalOpen && 'opacity-50'"
     class="bg-white shadow-lg rounded-lg p-8 mb-8 max-w-4xl mx-auto border border-gray-200"
   >
     <div class="flex items-center justify-between mb-6">
@@ -57,8 +71,10 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
         </h2>
         <h5 class="text-sm text-gray-600">{{ formatDate(bookingData.booking.book_date) }}</h5>
       </div>
+
       <span class="text-sm text-gray-500"
-        >Status: <span class="font-semibold text-green-500">{{ bookingData.booking.status }}</span></span
+        >Status:
+        <span class="font-semibold text-green-500">{{ bookingData.booking.status }}</span></span
       >
     </div>
 
@@ -80,7 +96,8 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
           }}</span>
         </p>
         <p class="text-gray-600">
-          Email: <span class="font-semibold">{{ bookingData.booking.service.provider.user.email }}</span>
+          Email:
+          <span class="font-semibold">{{ bookingData.booking.service.provider.user.email }}</span>
         </p>
         <p class="text-gray-600">
           Contact:
@@ -146,21 +163,71 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
         </div>
       </div>
 
-
-      <div class="bg-gray-50 p-6 rounded-lg shadow-sm space-y-2" v-if="bookingData.booking.payment && bookingData.booking.payment.status === PaymentStatus.PAID">
+      <div
+        class="bg-gray-50 p-6 rounded-lg shadow-sm space-y-2"
+        v-if="
+          bookingData.booking.payment && bookingData.booking.payment.status === PaymentStatus.PAID
+        "
+      >
         <h3 class="text-lg font-medium text-gray-700 mb-4">Payment Information</h3>
         <p class="text-gray-600">
-          Payment Status: <span class="font-semibold text-green-500">{{ bookingData.booking.payment.status }}</span>
-        </p>
-        <p class="text-gray-600">Booking amount : <span class="font-semibold">{{ bookingData.booking.payment.amount }} ₹</span></p>
-        <p class="text-gray-600">Commission : <span class="font-semibold">{{ bookingData.booking.payment.commission_fee }} ₹</span></p>
-        <p class="text-gray-600">
-          Final amount: <span class="font-semibold text-blue-400">{{ bookingData.booking.payment.amount-bookingData.booking.payment.commission_fee }} ₹</span>
+          Payment Status:
+          <span class="font-semibold text-green-500">{{ bookingData.booking.payment.status }}</span>
         </p>
         <p class="text-gray-600">
-          Payment Date: <span class="font-semibold">{{ formatDate(bookingData.booking.payment.updated_at) }}</span>
+          Booking amount :
+          <span class="font-semibold">{{ bookingData.booking.payment.amount }} ₹</span>
+        </p>
+        <p class="text-gray-600">
+          Commission :
+          <span class="font-semibold">{{ bookingData.booking.payment.commission_fee }} ₹</span>
+        </p>
+        <p class="text-gray-600">
+          Final amount:
+          <span class="font-semibold text-blue-400"
+            >{{
+              bookingData.booking.payment.amount - bookingData.booking.payment.commission_fee
+            }}
+            ₹</span
+          >
+        </p>
+        <p class="text-gray-600">
+          Payment Date:
+          <span class="font-semibold">{{
+            formatDate(bookingData.booking.payment.updated_at)
+          }}</span>
         </p>
       </div>
     </div>
+
+    <div v-if="bookingData.booking.review" class="mt-4">
+      <h4 class="text-md font-semibold text-gray-700 mb-2">Review</h4>
+      <div class="space-y-4">
+        <div class="bg-gray-100 p-4 rounded-lg">
+
+          <div class="flex justify-between items-center">
+            <p class="text-sm text-gray-00">{{ formatDate(bookingData.booking.review.created_at) }}</p>
+            <div class="flex items-center">
+              <RatingStar v-for="i in bookingData.booking.review.rating" :key="i" />
+            </div>
+          </div>
+
+          <p class="overflow-wrap text-sm text-gray-600 mt-2">{{ bookingData.booking.review.comment }}</p>
+        </div>
+      </div>
+    </div>
+
+    <button
+      v-if="bookingData.booking.status == BookingStatus.COMPLETE && !bookingData.booking.review"
+      @click="openReviewModal"
+      class="rounded-md bg-black px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+    >
+      Review
+    </button>
   </div>
+  <ReviewModal
+    v-if="isReviewModalOpen"
+    :closeReviewModal="closeReviewModal"
+    @create-review="refetchBooking"
+  />
 </template>

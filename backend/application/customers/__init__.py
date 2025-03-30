@@ -4,7 +4,7 @@ from flask_restful import Api
 customer = Blueprint('customer', __name__)
 
 
-from .resources import CustomerBookingsListAPI, CustomerBookingMgmtAPI, CustomerPaymentHandleAPI, CustomerProfileAPI, CustomerPaymentListAPI, CustomerDashboardAPI
+from .resources import CustomerBookingsListAPI, CustomerBookingMgmtAPI, CustomerPaymentHandleAPI, CustomerProfileAPI, CustomerPaymentListAPI, CustomerDashboardAPI, CustomerReviewAPI
 
 api = Api(customer)
 
@@ -19,5 +19,7 @@ api.add_resource(CustomerPaymentHandleAPI, "/payments/<int:payment_id>")
 api.add_resource(CustomerProfileAPI, "/profile")
 
 api.add_resource(CustomerDashboardAPI, "/dashboard")
+
+api.add_resource(CustomerReviewAPI, "/bookings/<int:booking_id>/review")
 
 

@@ -390,3 +390,36 @@ export async function getDashboardDataForCustomerDashboard(custId) {
     throw new Error(error.message || 'Something went wrong !!')
   }
 }
+
+
+export async function createReviewForCompletedBooking(custId, bookingId, reviewData) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/customers/${custId}/bookings/${bookingId}/review`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...reviewData }),
+    })
+
+    const respData = await resp.json()
+
+    if (resp.status == 401 && respData?.errors?.token_type) {
+      authStore.refreshExpiredAuthToken()
+      throw new Error('Auth Token Expired!!')
+    }
+
+    if (!resp.ok || !respData.success) {
+      throw new Error(respData.err_message || 'Failed to create review !!')
+    }
+  } catch (error) {
+    throw new Error(error.message || 'Something went wrong creating review!!')
+  }
+}

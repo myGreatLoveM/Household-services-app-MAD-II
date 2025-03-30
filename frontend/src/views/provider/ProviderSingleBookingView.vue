@@ -8,6 +8,7 @@ import ErrorState from '@/components/ErrorState.vue'
 import { formatDate } from '@/utils.js'
 import { getBookingsForProviderDashboard } from '@/services/providerService'
 import { PaymentStatus } from '@/constants'
+import RatingStar from '@/components/RatingStar.vue'
 
 const toast = useToast()
 const route = useRoute()
@@ -157,6 +158,23 @@ watch([isBookingDataError, bookingDataError], ([isErrorVal, errorVal]) => {
         <p class="text-gray-600">
           Payment Date: <span class="font-semibold">{{ formatDate(bookingData.booking.payment.updated_at) }}</span>
         </p>
+      </div>
+    </div>
+
+    <div v-if="bookingData.booking.review" class="mt-4">
+      <h4 class="text-md font-semibold text-gray-700 mb-2">Review</h4>
+      <div class="space-y-4">
+        <div class="bg-gray-100 p-4 rounded-lg">
+
+          <div class="flex justify-between items-center">
+            <p class="text-sm text-gray-00">{{ formatDate(bookingData.booking.review.created_at) }}</p>
+            <div class="flex items-center">
+              <RatingStar v-for="i in bookingData.booking.review.rating" :key="i" />
+            </div>
+          </div>
+
+          <p class="overflow-wrap text-sm text-gray-600 mt-2">{{ bookingData.booking.review.comment }}</p>
+        </div>
       </div>
     </div>
   </div>

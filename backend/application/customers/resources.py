@@ -5,7 +5,7 @@ from flask_restful import Resource
 from sqlalchemy.exc import SQLAlchemyError
 from application.extensions import db
 from application.core.models import User
-from .models import Booking, Customer, Payment
+from .models import Booking, Customer, Payment, Review
 from application.providers.models import Service
 
 from .schemas import BookingSchema, CustomerSchema, PaymentSchema
@@ -14,6 +14,44 @@ from application.decorators import role_required
 from application.utils import success_response, error_response
 from application.enums import PaymentMethodEnum, PaymentStatusEnum, UserRoleEnum, BookingStatusEnum
 
+
+class CustomerReviewAPI(Resource):
+
+  def post(self, cust_id, booking_id):
+    try:
+      data = request.get_json()
+      print(data)
+      booking = (
+        db.session.query(
+            Booking
+        )
+        .join(Customer)
+        .filter(Booking.id.is_(booking_id), Customer.id.is_(cust_id))
+        .first()
+      )
+
+      if booking is None:
+        return error_response(f'Booking not found with id {booking_id}', status_code=400)
+
+      rating = int(data.get('rating'))
+      comment = data.get('comment')
+
+      if booking.status != BookingStatusEnum.COMPLETE.value:
+        return error_response('Booking is not completed', status_code=400)
+      
+      new_review = Review(
+        rating=rating, comment=comment, booking_id=booking_id, cust_id=cust_id
+      )
+      db.session.add(new_review)
+      db.session.commit()
+
+      return success_response(201)
+    except SQLAlchemyError as e:
+      print(e)
+      return error_response('Something went wrong while creating review')
+    except Exception as e:
+      print(e)
+      return error_response('Somthing went wrong, please try again..')
 
 
 class CustomerDashboardAPI(Resource):
@@ -64,7 +102,6 @@ class CustomerDashboardAPI(Resource):
     except Exception as e:
       print(e)
       return error_response('Somthing went wrong, please try again..')
-
 
 
 class CustomerBookingsListAPI(Resource):
