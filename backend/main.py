@@ -16,7 +16,7 @@ celery = celery_init_app(app, CeleryConfig)
 celery.autodiscover_tasks()
 
 
-from application.tasks import customer_bookings_monthly_report
+from application.tasks import customer_bookings_monthly_report, provider_pending_bookings_update_status_remainder, provider_upcoming_active_bookings_remainder
 from celery.schedules import crontab
 
 
@@ -26,14 +26,39 @@ def setup_periodic_tasks(sender: Celery, **kwargs):
     sender.add_periodic_task(
         crontab(minute='*/2'), 
         customer_bookings_monthly_report.s(), 
-        name='customer monthly report for bookings every 2 minutes'
+        name='monthly report of bookings for customer every 2 minutes'
+    )
+
+    sender.add_periodic_task(
+        crontab(minute='*/2'), 
+        provider_pending_bookings_update_status_remainder.s(), 
+        name='daily remainder for pending bookings of all provider to update status sent every 2 minutes'
+    )
+
+    sender.add_periodic_task(
+        crontab(minute='*/2'), 
+        provider_upcoming_active_bookings_remainder.s(), 
+        name='daily remainder for upcoming active bookings of all providers sent every two minutes'
     )
 
     # sender.add_periodic_task(
     #     crontab(day_of_month=1, hour=5, minute=30), 
     #     customer_bookings_monthly_report.s(), 
-    #     name='customer monthly report for bookings every 2 minutes'
+    #     name='monthly report of bookings for customer on the first day of every month'
     # )
+
+    # sender.add_periodic_task(
+    #     crontab(hour='17', minute='30'), 
+    #     provider_pending_bookings_update_status_remainder.s(), 
+    #     name='daily remainder for pending bookings of all provider to update status sent every day at 5:30 PM'
+    # )
+
+    # sender.add_periodic_task(
+    #     crontab(hour='21', minute='0'), 
+    #     provider_upcoming_active_bookings_remainder.s(), 
+    #     name='daily remainder for upcoming active bookings of all providers sent every day at 9:00 PM'
+    # )
+
 
 
 

@@ -109,7 +109,7 @@ export async function getPaymentDetailOfBookingForCustomerDashboard(custId, paym
   }
 }
 
-export async function confirmPaymentOfBookingForProviderDashboard(custId, paymentId, paymentData) {
+export async function confirmPaymentOfBookingForCustomerDashboard(custId, paymentId, paymentData) {
   try {
     const authStore = useAuthStore()
 
@@ -145,7 +145,7 @@ export async function confirmPaymentOfBookingForProviderDashboard(custId, paymen
   }
 }
 
-export async function cancelPaymentOfBookingForProviderDashboard(custId, paymentId) {
+export async function cancelPaymentOfBookingForCustomerDashboard(custId, paymentId) {
   try {
     const authStore = useAuthStore()
 
@@ -179,8 +179,7 @@ export async function cancelPaymentOfBookingForProviderDashboard(custId, payment
   }
 }
 
-
-export async function completeBookingForProviderDashboard(custId, bookingId) {
+export async function completeBookingForCustomerDashboard(custId, bookingId) {
   try {
     const authStore = useAuthStore()
 

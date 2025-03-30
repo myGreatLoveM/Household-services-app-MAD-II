@@ -132,7 +132,7 @@ watch([isError, error], ([isErrorVal, errorVal]) => {
       </table>
     </div>
      <PaginationBar
-      v-if="!isPending && !isPending"
+      v-if="!isPending && !isError"
       :total="data?.no_of_payments"
       :pages="data?.no_of_pages"
       :currentPage="page"

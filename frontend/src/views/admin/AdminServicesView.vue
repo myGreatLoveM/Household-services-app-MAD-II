@@ -171,13 +171,13 @@ const handleUnblockService = async (serviceId, serviceName) => {
               Provider
             </th>
             <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-              Price /hr
-            </th>
-            <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
               Provider Status
             </th>
             <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
               Status
+            </th>
+            <th scope="col" class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+              Price /hr
             </th>
             <th scope="col" class="px-4 py-2">Action</th>
           </tr>
@@ -191,15 +191,14 @@ const handleUnblockService = async (serviceId, serviceName) => {
           >
             <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">{{ service.id }}</td>
             <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
-              {{ service.name }}
+              {{ service.name.toUpperCase() }}
             </td>
-            <td class="whitespace-nowrap px-4 py-2 text-gray-700">
-              {{ service.provider.category.name }}
+            <td class="whitespace-nowrap px-4 py-2 font-medium text-gray-900">
+              {{ service.provider.category.name.toUpperCase() }}
             </td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
               {{ service.provider.user.username }}
             </td>
-            <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ service.price }} ₹</td>
             <td class="whitespace-nowrap px-4 py-2 text-gray-700">
               <span
                 v-if="service.provider.is_approved && service.provider.is_blocked"
@@ -234,6 +233,7 @@ const handleUnblockService = async (serviceId, serviceName) => {
                 discontinue
               </span>
             </td>
+            <td class="whitespace-nowrap px-4 py-2 text-gray-700">{{ service.price }} ₹</td>
 
             <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
             <RouterLink :to="{ name: 'admin-single-service', params: { serviceId: service.id } }">

@@ -452,3 +452,77 @@ export async function getAllPaymentsForAdminDashboard(page) {
     throw new Error(error.message || 'Something went wrong fetching payments!!')
   }
 }
+
+
+
+export async function unblockCustomerForAdminDashboard({custId, custUsername}) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/admin/customers/${custId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (resp.status == 401) {
+      const respData = resp.json()
+      if (respData?.errors?.token_type) {
+        authStore.refreshExpiredAuthToken()
+        throw new Error('Auth Token Expired!!')
+      }
+    }
+
+    if (!resp.ok) {
+      throw new Error(`Failed to unblock of customer ${custUsername}!!`)
+    }
+
+    return { custId, custUsername }
+  } catch (error) {
+    console.log('error', error);
+    throw new Error(error.message || `Something went wrong ${custUsername} to unblock!!`)
+  }
+}
+
+
+export async function blockCustomerForAdminDashboard({custId, custUsername}) {
+  try {
+    const authStore = useAuthStore()
+
+    if (!authStore.authToken) {
+      throw new Error('Auth token required to fetch data!!')
+    }
+
+    const resp = await fetch(`/api/v1/admin/customers/${custId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${authStore.authToken}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (resp.status == 401) {
+      const respData = resp.json()
+      if (respData?.errors?.token_type) {
+        authStore.refreshExpiredAuthToken()
+        throw new Error('Auth Token Expired!!')
+      }
+    }
+
+    if (!resp.ok) {
+      throw new Error(`Failed to block of customer ${custUsername}!!`)
+    }
+
+    return { custId, custUsername }
+  } catch (error) {
+    console.log('error', error);
+    throw new Error(error.message || `Something went wrong ${custUsername} to block!!`)
+  }
+}
+

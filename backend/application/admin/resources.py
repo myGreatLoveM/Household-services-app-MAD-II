@@ -13,7 +13,7 @@ from application.providers.models import Provider, Service
 from .schemas import CategorySchema, CreateCategorySchema
 from .parsers import admin_provider_query_args_parser, admin_service_query_args_parser
 from application.providers.schemas import ProviderSchema, ServiceSchema
-from application.customers.schemas import PaymentSchema
+from application.customers.schemas import CustomerSchema, PaymentSchema
 
 from application.enums import BookingStatusEnum, ProviderServiceStatusEnum, UserRoleEnum, UserStatusEnum, PaymentStatusEnum
 from application.utils import error_response, success_response
@@ -234,7 +234,6 @@ class AdminCategoryAPI(Resource):
             category.short_description = short_description 
 
             db.session.commit()
-            time.sleep(5)
             return success_response(status_code=204)
         except ValidationError as err:
             return error_response('validation errors', errors=err.messages, status_code=400)
@@ -476,38 +475,38 @@ class AdminCustomerListAPI(Resource):
         per_page = current_app.config.get('ITEMS_PER_PAGE', 6)
 
         try:
-            paginated_data = (
+            paginated = (
                 db.session.query(
                     Customer,
                     db.func.count(
                         db.case(
-                            (Booking.status.is_(BookingStatusEnum.ACTIVE.value), Booking.id)
-                        )
-                    ).label('active_bookings'),
-                    db.func.count(
-                        db.case(
-                            (Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value, BookingStatusEnum.CLOSE.value]), Booking.id)
+                            (Booking.status.in_([BookingStatusEnum.ACTIVE.value, BookingStatusEnum.COMPLETE.value]), Booking.id)
                         )
                     ).label('total_bookings'),
-                    db.func.coalesce(
-                        db.func.sum(
-                            db.case(
-                                (Payment.status.is_(PaymentStatusEnum.PAID.value), Payment.total_amount)
-                            )
-                        ), 0
-                    )
-                    .label('lifetime_spent'),
                 )
                 .outerjoin(Booking, Customer.bookings)
-                .outerjoin(Payment, Booking.payment)
                 .group_by(Customer.id)
-                .order_by(Customer.id)
+                .order_by(Customer.id.desc())
                 .paginate(page=page, per_page=per_page, error_out=False)
             )
+            
+            schema = CustomerSchema(exclude=['bookings'])
+            customers = []
 
+            for customer_obj, total_bookings in paginated:
+                customer = schema.dump(customer_obj)
+                customer['total_bookings'] = total_bookings
+                customers.append(customer)
 
+            data = {
+                'no_of_customers': paginated.total,
+                'no_of_pages': paginated.pages,
+                'current_page': paginated.page,
+                'per_page': paginated.per_page,
+                'customers': customers
+            }
 
-            return {}
+            return success_response(data=data)
         except SQLAlchemyError as e:
             return error_response('Something went wrong while fetching customers')
         except Exception as e:
@@ -563,7 +562,6 @@ class AdminCustomerMgmtAPI(Resource):
         except Exception as e:
             print(e)
             return error_response('Somthing went wrong, please try again..')
-
 
 
 class AdminPaymentsListAPI(Resource):

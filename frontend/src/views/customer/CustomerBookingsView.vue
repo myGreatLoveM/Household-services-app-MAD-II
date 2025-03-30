@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useToast } from 'vue-toastification'
 import { useRoute } from 'vue-router'
 import { useAuthUserStore } from '@/stores/authUserStore'
-import { getAllBookingForCustomerDashboard, completeBookingForProviderDashboard } from '@/services/customerService.js'
+import { getAllBookingForCustomerDashboard, completeBookingForCustomerDashboard } from '@/services/customerService.js'
 import PaginationBar from '@/components/PaginationBar.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
@@ -45,7 +45,7 @@ const {
   isError: isCompleteError,
 } = useMutation({
   mutationFn: (bookingId) =>
-    completeBookingForProviderDashboard(custId, bookingId),
+    completeBookingForCustomerDashboard(custId, bookingId),
 })
 
 

@@ -10,6 +10,8 @@ from application.customers.schemas import BookingSchema
 from application.providers.schemas import ServiceSchema
 from .mail import send_email
 from .utils import format_report
+from application.enums import BookingStatusEnum
+
 
 
 @shared_task(ignore_result=False, name='provider_closed_bookings_csv_export')
@@ -59,7 +61,6 @@ def provider_closed_bookings_csv_export(prov_id):
     )
     time.sleep(20)
     return csv_file_name
-
 
 
 @shared_task(ignore_result=True, name='customer_bookings_monthly_report')
@@ -153,5 +154,105 @@ def admin_closed_booking_batch_csv_export():
     )
 
     return csv_file_name
+
+
+@shared_task(ignore_result=True, name='provider_pending_bookings_update_status_remainder')
+def provider_pending_bookings_update_status_remainder():
+    providers = Provider.query.all()
+
+    for provider in providers:
+        prov_username = provider.user.username
+        prov_email = provider.user.email
+
+        prov_services = provider.services.all()
+        booking_schema = BookingSchema(exclude=['review', 'payment'])
+        prov_pending_bookings = []
+
+        for service in prov_services:
+            service_name = service.name
+            pending_bookings = service.bookings.filter_by(status=BookingStatusEnum.PENDING.value).all()
+            prov_pending_bookings.extend(pending_bookings)
+
+        pending_booking_data = []
+        for booking_obj in prov_pending_bookings:
+            booking_dict = booking_schema.dump(booking_obj)
+
+            booking = {
+                'id': booking_dict.get('id'),
+                'service': service_name,
+                'customer': booking_dict.get('customer').get('user').get('username'),
+                'book_date': booking_dict.get('book_date')
+            }
+            pending_booking_data.append(booking)
+
+        if len(pending_booking_data) > 0:
+            data = {
+                'username': prov_username,
+                'bookings': pending_booking_data
+            }
+
+            message = format_report('templates/prov_pending_booking_remainder.html', data=data)
+
+            send_email(
+                to_address=prov_email,
+                subject='pending bookings remainder',
+                message=message
+            )
+
+    return 'Daily remainder for pending bookings of all providers sent....'
+
+
+@shared_task(ignore_result=True, name='provider_upcoming_active_bookings_remainder')
+def provider_upcoming_active_bookings_remainder():
+    providers = Provider.query.all()
+
+    for provider in providers:
+        prov_username = provider.user.username
+        prov_email = provider.user.email
+
+        prov_services = provider.services.all()
+        booking_schema = BookingSchema(exclude=['review', 'payment'])
+        prov_pending_bookings = []
+
+        for service in prov_services:
+            service_name = service.name
+            pending_bookings = service.bookings.filter_by(status=BookingStatusEnum.ACTIVE.value).all()
+            prov_pending_bookings.extend(pending_bookings)
+
+        pending_booking_data = []
+        for booking_obj in prov_pending_bookings:
+            booking_dict = booking_schema.dump(booking_obj)
+
+            booking = {
+                'id': booking_dict.get('id'),
+                'service': service_name,
+                'customer': booking_dict.get('customer').get('user').get('username'),
+                'book_date': booking_dict.get('book_date')
+            }
+            pending_booking_data.append(booking)
+
+        if len(pending_booking_data) > 0:
+            data = {
+                'username': prov_username,
+                'bookings': pending_booking_data
+            }
+
+            message = format_report('templates/prov_active_booking_remainder.html', data=data)
+
+            send_email(
+                to_address=prov_email,
+                subject='upcoming active bookings remainder',
+                message=message
+            )
+
+    return 'Daily remainder for upcoming active bookings of all providers sent....'
+
+
+
+
+
+# booking confirmation remainder
+
+
 
 

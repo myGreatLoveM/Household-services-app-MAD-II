@@ -168,16 +168,6 @@ const handleUnblockProvider = async (provId, provUsername) => {
                 </span>
               </td>
               <td class="whitespace-nowrap px-4 py-2 flex justify-center gap-3">
-                <RouterLink :to="{ name: 'home' }">
-                  <button
-                    v-if="prov.is_approved"
-                    :disabled="isActionButtonsDisabled"
-                    :class="isActionButtonsDisabled? 'bg-indigo-300 cursor-none': 'bg-indigo-600 hover:bg-indigo-700'"
-                    class="inline-block rounded bg-indigo-600 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-700"
-                  >
-                    View
-                  </button>
-                </RouterLink>
                 <button
                   v-if="prov.is_approved && !prov.is_blocked"
                   :disabled="isActionButtonsDisabled"

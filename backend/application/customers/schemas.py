@@ -13,7 +13,7 @@ class CustomerSchema(ma.SQLAlchemyAutoSchema):
         include_fk = False
 
     user = fields.Nested('UserSchema', dump_only=True, only=['username', 'email', 'profile'])
-    bookings = fields.List(fields.Nested('BookingSchema', many=True, exclude=['customer', 'payment', 'review']))
+    bookings = fields.List(fields.Nested('BookingSchema', many=True, dump_only=True, exclude=['customer', 'payment', 'review']))
 
 
 class BookingSchema(ma.SQLAlchemyAutoSchema):

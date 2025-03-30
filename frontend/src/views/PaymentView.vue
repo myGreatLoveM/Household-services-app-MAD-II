@@ -6,8 +6,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthUserStore } from '@/stores/authUserStore'
 import {
   getPaymentDetailOfBookingForCustomerDashboard,
-  confirmPaymentOfBookingForProviderDashboard,
-  cancelPaymentOfBookingForProviderDashboard,
+  confirmPaymentOfBookingForCustomerDashboard,
+  cancelPaymentOfBookingForCustomerDashboard,
 } from '@/services/customerService.js'
 import LoadingState from '@/components/LoadingState.vue'
 import ErrorState from '@/components/ErrorState.vue'
@@ -49,7 +49,7 @@ const {
   isError: isConfirmError,
 } = useMutation({
   mutationFn: () =>
-    confirmPaymentOfBookingForProviderDashboard(custId, paymentId, { paymentMethod: paymentMethod.value }),
+    confirmPaymentOfBookingForCustomerDashboard(custId, paymentId, { paymentMethod: paymentMethod.value }),
 })
 
 const {
@@ -60,7 +60,7 @@ const {
   isError: isCancelError,
 } = useMutation({
   mutationFn: () =>
-    cancelPaymentOfBookingForProviderDashboard(custId, paymentId),
+    cancelPaymentOfBookingForCustomerDashboard(custId, paymentId),
 })
 
 onMounted(async () => {

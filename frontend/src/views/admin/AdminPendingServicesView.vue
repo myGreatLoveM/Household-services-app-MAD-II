@@ -191,6 +191,12 @@ const handleUnblockService = async (serviceId, serviceName) => {
 
     <LoadingState v-if="isServiceDataPending" />
     <ErrorState v-else-if="isServiceDataError" />
+     <div
+      class="text-xl font-medium w-full text-center mt-10"
+      v-else-if="serviceData.services.length === 0"
+    >
+      No New Services Listed...
+    </div>
 
     <div v-else class="relative overflow-x-auto shadow-md sm:rounded-lg mt-10">
       <table class="min-w-full divide-gray-200 bg-white text-sm">
